@@ -1,0 +1,24 @@
+---
+import Icon from './Icon.astro';
+import { withBase } from '../lib/content.js';
+const { project, size = 'normal', index = 0 } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const { title, summary, tags, cover, demo } = project.data;
+const href = withBase(`/projects/${project.id}/`, base);
+---
+<article class={`project-card project-card--${size}`} data-reveal data-reveal-delay={Math.min(index, 4) * 0.06}>
+  <a href={href} class="project-card-link" data-icon-trigger>
+    {cover && (
+      <div class="project-card-media"><img src={withBase(cover, base)} alt="" loading="lazy" decoding="async" /></div>
+    )}
+    <div class="project-card-body">
+      {tags.length > 0 && <p class="eyebrow">{tags.slice(0, 2).join(' · ')}</p>}
+      <h3>{title}</h3>
+      <p class="project-card-summary">{summary}</p>
+      <p class="project-card-cta">
+        {demo ? 'Try it live' : 'Learn more'}
+        <Icon name={demo ? 'play' : 'chevron-right'} size={16} />
+      </p>
+    </div>
+  </a>
+</article>

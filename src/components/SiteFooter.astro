@@ -1,0 +1,16 @@
+---
+import site from '../../site.config.js';
+import Icon from './Icon.astro';
+import { withBase } from '../lib/content.js';
+const base = import.meta.env.BASE_URL;
+const year = new Date().getFullYear();
+---
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>© {year} {site.author}</p>
+    <nav class="footer-links" aria-label="Footer">
+      <a href={withBase('/rss.xml', base)}><Icon name="rss" size={16} />RSS</a>
+      {site.source && <a href={site.source}><Icon name="github" size={16} />Source</a>}
+    </nav>
+  </div>
+</footer>

@@ -1,0 +1,21 @@
+---
+import Icon from './Icon.astro';
+import { withBase, formatDate } from '../lib/content.js';
+const { posts } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<ul class="post-list">
+  {posts.map((post, i) => (
+    <li data-reveal data-reveal-delay={Math.min(i, 4) * 0.05}>
+      <a class="post-row" href={withBase(`/blog/${post.id}/`, base)} data-icon-trigger>
+        {post.data.cover && <img class="post-thumb" src={withBase(post.data.cover, base)} alt="" loading="lazy" />}
+        <span class="post-row-text">
+          <span class="post-row-date">{formatDate(post.data.date)}</span>
+          <span class="post-row-title">{post.data.title}</span>
+          {post.data.description && <span class="post-row-desc">{post.data.description}</span>}
+        </span>
+        <Icon name="chevron-right" size={18} />
+      </a>
+    </li>
+  ))}
+</ul>

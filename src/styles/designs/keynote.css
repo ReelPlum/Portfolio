@@ -1,0 +1,54 @@
+/* KEYNOTE: apple.com product-page feel. Frosted global bar, huge centred headlines, big rounded tiles. */
+[data-design='keynote'] .site-header { position: sticky; top: 0; z-index: 50; background: var(--bar-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--separator); }
+[data-design='keynote'] .site-header .bar { max-width: var(--content); margin: 0 auto; height: 48px; padding: 0 22px; }
+[data-design='keynote'] .brand { font-size: 17px; }
+[data-design='keynote'] .nav { margin: 0 auto; font-size: 13px; gap: 36px; }
+[data-design='keynote'] .bar-actions { margin-left: 0; }
+@media (max-width: 760px) { [data-design='keynote'] .bar-actions { margin-left: auto; } }
+[data-design='keynote'] main { padding: 0 22px; }
+
+[data-design='keynote'] .hero { text-align: center; max-width: 920px; margin: 0 auto; padding: 120px 0 96px; }
+[data-design='keynote'] .hero-eyebrow { font-size: clamp(19px, 2.4vw, 28px); font-weight: 600; color: var(--text-secondary); margin: 0 0 12px; }
+[data-design='keynote'] .hero-title { font-size: clamp(44px, 7.5vw, 88px); font-weight: 700; letter-spacing: -0.035em; line-height: 1.04; margin: 0 0 40px; }
+[data-design='keynote'] .hero--small { padding: 160px 0; }
+[data-design='keynote'] .hero-actions { justify-content: center; }
+[data-design='keynote'] .hero-actions .btn { font-size: 17px; padding: 0.7em 1.4em; }
+
+[data-design='keynote'] .section { max-width: var(--wide); margin: 0 auto; padding: 48px 0; }
+[data-design='keynote'] .section-header h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 700; }
+[data-design='keynote'] .section-header h2::after { content: '.'; }
+[data-design='keynote'] .see-all { font-size: 17px; }
+
+[data-design='keynote'] .project-card-link { background: var(--bg-secondary); border-radius: var(--radius-lg); overflow: hidden; transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease); }
+[data-design='keynote'] .project-card-link:hover { transform: scale(1.01); box-shadow: var(--shadow-hover); }
+[data-design='keynote'] .project-card-body { padding: 32px 36px 36px; text-align: center; align-items: center; }
+[data-design='keynote'] .project-card-body h3 { font-size: 32px; font-weight: 700; }
+[data-design='keynote'] .project-card-summary { font-size: 19px; max-width: 34ch; }
+[data-design='keynote'] .project-card-cta { font-size: 17px; }
+[data-design='keynote'] .project-card-media { order: 2; aspect-ratio: 16 / 9; margin: 0 36px; border-radius: 18px 18px 0 0; }
+[data-design='keynote'] .eyebrow { color: var(--accent-text); font-size: 14px; text-transform: none; letter-spacing: 0; }
+[data-design='keynote'] .project-card--large .project-card-body { padding: 56px 36px 40px; }
+[data-design='keynote'] .project-card--large .project-card-body h3 { font-size: clamp(40px, 6vw, 64px); }
+[data-design='keynote'] .project-card--large .project-card-summary { font-size: 21px; max-width: 40ch; }
+[data-design='keynote'] .project-card--large .project-card-media { margin: 0 8%; aspect-ratio: 16 / 8; }
+[data-design='keynote'] .project-grid { gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); }
+
+[data-design='keynote'] .post-list { border-top: 1px solid var(--separator); }
+[data-design='keynote'] .post-row { padding: 24px 4px; border-bottom: 1px solid var(--separator); }
+[data-design='keynote'] .post-row-title { font-size: 24px; letter-spacing: -0.02em; }
+[data-design='keynote'] .post-row:hover .post-row-title { color: var(--accent-text); }
+
+[data-design='keynote'] .page-header { text-align: center; padding: 96px 0 56px; max-width: 760px; margin: 0 auto; }
+[data-design='keynote'] .page-header h1 { font-size: clamp(48px, 7vw, 80px); }
+[data-design='keynote'] .page-header .lede { font-size: 24px; }
+[data-design='keynote'] .page-header + .project-grid, [data-design='keynote'] .page-header + .post-list { max-width: var(--wide); margin: 0 auto 80px; }
+[data-design='keynote'] .page-header + .post-list { max-width: 760px; }
+
+[data-design='keynote'] .article { max-width: 760px; margin: 0 auto; padding: 64px 0 96px; }
+[data-design='keynote'] .article--project { max-width: 980px; }
+[data-design='keynote'] .article--project .prose { max-width: 720px; margin: 0 auto; }
+[data-design='keynote'] .article-header h1 { font-size: clamp(40px, 6vw, 64px); }
+[data-design='keynote'] .article-header .lede { font-size: 24px; line-height: 1.35; }
+
+[data-design='keynote'] .site-footer { background: var(--bg-secondary); margin-top: 48px; }
+[data-design='keynote'] .footer-inner { max-width: var(--content); margin: 0 auto; padding: 20px 22px; font-size: 12px; }

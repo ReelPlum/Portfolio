@@ -1,0 +1,33 @@
+---
+import Icon from './Icon.astro';
+---
+<button class="icon-btn theme-toggle" type="button" aria-label="Switch to dark mode" data-theme-toggle>
+  <span class="theme-icon theme-icon-sun"><Icon name="sun" size={18} /></span>
+  <span class="theme-icon theme-icon-moon"><Icon name="moon" size={18} /></span>
+</button>
+
+<style>
+  .theme-toggle { position: relative; }
+  .theme-icon { position: absolute; inset: 0; display: grid; place-items: center; transition: transform 0.5s var(--spring), opacity 0.3s var(--ease); }
+  :global(:root[data-theme='light']) .theme-icon-sun,
+  :global(:root[data-theme='dark']) .theme-icon-moon { opacity: 0; transform: rotate(-90deg) scale(0.5); }
+</style>
+
+<script>
+  import { nextTheme, writeStored } from '../lib/theme.js';
+  for (const btn of document.querySelectorAll('[data-theme-toggle]')) {
+    const sync = () => {
+      const t = document.documentElement.dataset.theme;
+      btn.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      btn.setAttribute('aria-pressed', String(t === 'dark'));
+    };
+    sync();
+    btn.addEventListener('click', () => {
+      const t = nextTheme(document.documentElement.dataset.theme);
+      document.documentElement.dataset.theme = t;
+      writeStored(localStorage, t);
+      document.querySelectorAll('[data-theme-toggle]').forEach((b) => b.dispatchEvent(new Event('theme-sync')));
+    });
+    btn.addEventListener('theme-sync', sync);
+  }
+</script>
