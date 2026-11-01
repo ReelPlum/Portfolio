@@ -27,6 +27,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npx playwright install --with-deps chromium
+      # The browser tests use a tiny stand-in embedding (SEARCH_EMBEDDINGS=hash) so they are fast and offline.
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()
@@ -35,8 +36,24 @@ jobs:
           path: test-results/
           retention-days: 7
 
+  semantic-search:
+    # Checks the real embedding model end to end: computed at build time, then run in the browser.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=desktop --grep @real-model
+        env:
+          REAL_MODEL: '1'
+          SEARCH_EMBEDDINGS: required
+
   deploy:
-    needs: test
+    needs: [test, semantic-search]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
@@ -56,6 +73,7 @@ jobs:
           # Picks up the right base path automatically (/Portfolio/ now, / if the repo is renamed or a custom domain is added).
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           SITE_URL: ${{ steps.pages.outputs.origin }}
+          SEARCH_EMBEDDINGS: required
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

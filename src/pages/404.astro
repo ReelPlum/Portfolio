@@ -5,9 +5,9 @@ import { withBase } from '../lib/content.js';
 const base = import.meta.env.BASE_URL;
 ---
 <Base title="Not found">
-  <section class="hero hero--small">
+  <section class="hero">
     <p class="hero-eyebrow">404</p>
     <h1 class="hero-title">This page wandered off.</h1>
-    <div class="hero-actions"><a class="btn" href={withBase('/', base)}><Icon name="arrow-left" size={16} />Back home</a></div>
+    <div class="hero-actions"><a class="btn" href={withBase('/', base)}><Icon name="arrow_back" size={18} />Back home</a></div>
   </section>
 </Base>

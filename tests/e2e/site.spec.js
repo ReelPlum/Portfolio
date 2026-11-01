@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { trackErrors } from './helpers.js';
 
 test.describe('pages', () => {
-  for (const path of ['', 'projects/', 'blog/', 'about/', 'contact/', 'blog/hello-world/', 'projects/tiny-calc/', 'projects/interpreter/']) {
+  for (const path of ['', 'projects/', 'blog/', 'about/', 'contact/', 'search/', 'blog/hello-world/', 'projects/tiny-calc/', 'projects/interpreter/']) {
     test(`/${path} renders without errors`, async ({ page }) => {
       const errors = trackErrors(page);
       const res = await page.goto(path);
@@ -29,7 +29,7 @@ test.describe('pages', () => {
 
   test('every internal link resolves', async ({ page, request, baseURL }) => {
     const seen = new Set();
-    for (const path of ['', 'projects/', 'blog/', 'contact/']) {
+    for (const path of ['', 'projects/', 'blog/', 'contact/', 'blog/hello-world/']) {
       await page.goto(path);
       const hrefs = await page.$$eval('a[href^="/"], link[href^="/"]', (els) => els.map((a) => a.getAttribute('href')));
       for (const h of hrefs) seen.add(h);
@@ -102,22 +102,66 @@ test.describe('theme', () => {
   });
 });
 
-test.describe('animated icons', () => {
-  test('icons animate when their button is hovered', async ({ page }) => {
+test.describe('animated icons, and nothing else moves', () => {
+  test('icons fill in and animate when their button is hovered', async ({ page }) => {
     await page.goto('');
-    const btn = page.locator('.hero-actions .btn').first();
+    const btn = page.locator('.hero-actions .btn', { hasText: 'Get in touch' });
     const icon = btn.locator('.icon');
+    const fill = icon.locator('.icon-fill');
     expect(await icon.evaluate((el) => getComputedStyle(el).animationName)).toBe('none');
+    expect(await fill.evaluate((el) => getComputedStyle(el).opacity)).toBe('0');
     await btn.hover();
-    await expect.poll(() => icon.evaluate((el) => getComputedStyle(el).animationName)).toBe('icon-nudge-x');
+    await expect.poll(() => icon.evaluate((el) => getComputedStyle(el).animationName)).toBe('icon-wiggle');
+    await expect.poll(() => fill.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
   });
 
   test('every icon on the site has an animation', async ({ page }) => {
-    for (const path of ['', 'projects/tiny-calc/', 'contact/']) {
+    for (const path of ['', 'projects/tiny-calc/', 'contact/', 'search/?q=rust']) {
       await page.goto(path);
       const missing = await page.$$eval('svg.icon', (els) => els.filter((e) => !e.dataset.anim).map((e) => e.dataset.icon));
       expect(missing).toEqual([]);
     }
+  });
+
+  test('only icons animate: no transitions, scroll effects or transforms elsewhere', async ({ page }) => {
+    for (const path of ['', 'blog/hello-world/', 'projects/tiny-calc/']) {
+      await page.goto(path);
+      await page.mouse.wheel(0, 2000);
+      const moving = await page.$$eval('body *', (els) => els
+        .filter((el) => !el.closest('svg.icon'))
+        .filter((el) => {
+          const cs = getComputedStyle(el);
+          const anyTransition = cs.transitionDuration.split(',').some((d) => parseFloat(d) > 0);
+          return anyTransition || cs.animationName !== 'none' || (cs.transform !== 'none' && !el.closest('.katex'));
+        })
+        .map((el) => `${el.tagName.toLowerCase()}.${el.className}`));
+      expect(moving, path).toEqual([]);
+    }
+  });
+});
+
+test.describe('LaTeX, references and PDFs', () => {
+  test('maths renders with KaTeX', async ({ page }) => {
+    await page.goto('blog/hello-world/');
+    await expect(page.locator('.prose .katex').first()).toBeVisible();
+    await expect(page.locator('.prose .katex-display')).toHaveCount(1);
+    await expect(page.locator('.prose')).not.toContainText('$e^{i');
+  });
+
+  test('[[references]] link to posts and projects, which list what references them', async ({ page }) => {
+    await page.goto('blog/hello-world/');
+    await page.getByRole('link', { name: 'Tiny Calc' }).first().click();
+    await expect(page).toHaveURL(/projects\/tiny-calc\/$/);
+    const backlinks = page.getByRole('region', { name: 'Referenced by' });
+    await expect(backlinks.getByRole('link', { name: /Hello, world/ })).toBeVisible();
+  });
+
+  test('a PDF link on its own line renders every page', async ({ page }) => {
+    await page.goto('blog/hello-world/');
+    const pdf = page.locator('[data-pdf]');
+    await expect(pdf).toHaveAttribute('data-pages', '2', { timeout: 15000 });
+    await expect(pdf.locator('canvas.pdf-page')).toHaveCount(2);
+    await expect(pdf.getByRole('link', { name: 'lecture-notes.pdf' })).toHaveAttribute('href', /\/files\/lecture-notes\.pdf$/);
   });
 });
 
@@ -139,6 +183,7 @@ test.describe('search engines', () => {
     await page.goto(test.info().project.use.baseURL);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.locator('.project-card').first()).toBeVisible();
+    await expect(page.locator('.prose .katex, .project-card').first()).toBeVisible();
     await ctx.close();
   });
 

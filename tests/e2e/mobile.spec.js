@@ -16,3 +16,16 @@ test('no horizontal scrolling', async ({ page }) => {
     expect(overflow, path).toBeLessThanOrEqual(0);
   }
 });
+
+// Regression: on phones the header lost its side padding, so the logo touched the screen edge.
+test('header content keeps a side gutter', async ({ page }) => {
+  await page.goto('');
+  const box = await page.locator('.brand').boundingBox();
+  expect(box.x).toBeGreaterThanOrEqual(16);
+});
+
+test('search works on a phone', async ({ page }) => {
+  await page.goto('');
+  await page.getByRole('searchbox').fill('calc');
+  await expect(page.locator('.search-panel .search-result').first()).toContainText('Tiny Calc');
+});
