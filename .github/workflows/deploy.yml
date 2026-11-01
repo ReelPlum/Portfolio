@@ -19,8 +19,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -29,7 +29,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # The browser tests use a tiny stand-in embedding (SEARCH_EMBEDDINGS=hash) so they are fast and offline.
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: failure()
         with:
           name: playwright-report
@@ -40,8 +40,8 @@ jobs:
     # Checks the real embedding model end to end: computed at build time, then run in the browser.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -60,22 +60,27 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
       - run: npm ci
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - run: npm run build
         env:
           # Picks up the right base path automatically (/Portfolio/ now, / if the repo is renamed or a custom domain is added).
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SEARCH_EMBEDDINGS: required
-      - uses: actions/upload-pages-artifact@v3
+      # One artifact name per attempt: re-running the job keeps the earlier attempt's
+      # artifact, and deploy-pages refuses to choose between two with the same name.
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
+          name: github-pages-${{ github.run_attempt }}
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
