@@ -57,3 +57,8 @@ $RECYCLE.BIN/
 *.tgz
 .eslintcache
 .stylelintcache
+
+# Design preview builds and Rust build output
+dist-*/
+tests/fixtures/tiny-calc/target/
+.astro/

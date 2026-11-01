@@ -1,69 +1,58 @@
 # Portfolio
 
-My personal portfolio and blog, built with JavaScript and hosted on GitHub Pages.
+My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScript) and hosted on GitHub Pages.
 
-The idea is simple: **write a Markdown file, get a page.** Drop a `.md` file into the content folder and it shows up on the site as a new page or blog post, with no HTML to write.
-
-> **Status: early days.** The repository is being set up right now. Three design directions are being prototyped so one can be picked (or mixed and matched). Anything marked _(planned)_ below describes how the site is meant to work and is not built yet. This README will be updated as each piece lands.
+**Write a Markdown file, get a page.** Drop a `.md` file into `src/content/` and it shows up on the site.
 
 ## Features
 
-| Feature | Status |
-| --- | --- |
-| New `.md` files become pages and blog posts | _(planned)_ |
-| Clean Apple-inspired design: flat colours, no gradients | _(planned, 3 designs in progress)_ |
-| Light and dark mode, following the system setting with a manual toggle | _(planned)_ |
-| Animated icons for every action (theme toggle, menu, links, copy, and so on) | _(planned)_ |
-| Embedded projects, such as a live, in-browser interpreter demo | _(planned)_ |
-| YouTube, Vimeo and image support inside posts | _(planned)_ |
-| Automated tests for everything, plus a regression test for every bug fixed | _(planned)_ |
-| Automatic deploy to GitHub Pages on every push to `main` | _(planned)_ |
+- New `.md` files become blog posts, project pages and standalone pages
+- Apple-inspired design: flat colours, no gradients, frosted navigation bar
+- Light and dark mode that follows the system setting, with a toggle that remembers your choice
+- Animated icons ([Lucide](https://lucide.dev)) on every button and link, plus scroll-in animations ([Motion](https://motion.dev))
+- Live, in-browser project demos from WebAssembly (made for a Rust interpreter that prints to stdout)
+- YouTube, Vimeo, video files and images inside posts
+- Search-engine friendly: static HTML, sitemap, `robots.txt`, RSS, Open Graph tags and JSON-LD structured data
+- Unit tests (Vitest) and browser tests (Playwright), run on every push
 
-## Adding content _(planned)_
-
-All content lives in Markdown files. The folder layout below is the intended one and may change slightly once the design is chosen.
+## Adding content
 
 ```
-content/
-├── pages/          # Standalone pages, e.g. about.md → /about
-├── blog/           # Blog posts, e.g. 2026-11-01-hello-world.md → /blog/hello-world
-└── projects/       # Project write-ups, optionally with an embedded demo
+src/content/
+├── blog/       # hello-world.md  → /blog/hello-world/
+├── projects/   # interpreter.md  → /projects/interpreter/
+└── pages/      # about.md        → /about/
 ```
 
-### A new blog post
+Files whose name starts with `_` are ignored, and `draft: true` hides a post or project from the live site
+(drafts still show in `npm run dev`).
 
-Create `content/blog/my-first-post.md`:
+### Blog post
+
+`src/content/blog/my-first-post.md`:
 
 ```markdown
 ---
 title: My first post
 date: 2026-11-01
-description: A short summary shown in lists and link previews.
-tags: [javascript, interpreters]
-cover: /assets/images/my-first-post/cover.jpg
-draft: false
+description: A short summary shown in lists, link previews and search results.
+tags: [Rust, Interpreters]
+cover: /images/my-first-post.png   # optional
 ---
 
 Write your post here using normal **Markdown**.
 ```
 
-Commit and push it, and it appears on the blog. Set `draft: true` to keep a post off the live site.
+### Page
 
-### A new page
+`src/content/pages/uses.md` with a `title` (and optional `description`) becomes `/uses/`. To show it in the top
+bar, add it to `nav` in `site.config.js`.
 
-Create `content/pages/uses.md` with a `title` in the front matter. It is served at `/uses`. Add `nav: true` to show it in the navigation bar.
+### Images and video
 
-### Images
+Put images in `public/images/` and write `![What the image shows](/images/diagram.png)`.
 
-Put images under `assets/images/` and use standard Markdown:
-
-```markdown
-![Alt text describing the image](/assets/images/my-first-post/diagram.png)
-```
-
-### YouTube and Vimeo
-
-Paste the video link on a line by itself and it is turned into a responsive embed:
+Paste a YouTube or Vimeo link (or a link to an `.mp4` / `.webm` file) **on a line by itself** and it becomes a player:
 
 ```markdown
 https://www.youtube.com/watch?v=VIDEO_ID
@@ -71,72 +60,104 @@ https://www.youtube.com/watch?v=VIDEO_ID
 https://vimeo.com/VIDEO_ID
 ```
 
-### Embedding a project
+A link inside a sentence stays a normal link.
 
-Projects can ship a live demo (for example, an interpreter you can type code into). The demo's files go in `projects/<name>/`, and the project's Markdown file points at it:
+### Project
 
 ```markdown
 ---
 title: My Interpreter
-embed: /projects/my-interpreter/index.html
-repo: https://github.com/ReelPlum/my-interpreter
+summary: One or two sentences for the project card.
+date: 2026-10-20
+tags: [Rust, WebAssembly]
+cover: /images/interpreter.svg
+featured: true                       # featured projects come first; the first one is the big tile on the home page
+source: https://github.com/ReelPlum/my-interpreter   # adds a "View source" button
+link: https://example.com            # optional "Visit" button
 ---
-
-Some words about how the interpreter works.
 ```
 
-The exact embed format is still being decided. It will most likely be either an iframe of a static build or a JavaScript module that mounts into the page.
+### Embedding the interpreter (WebAssembly)
 
-## Running locally _(planned)_
+The project page shows a code editor with a **Run** button and a console. Whatever the program prints to
+stdout / stderr appears in the console.
 
-You need [Node.js](https://nodejs.org/) 20 or newer.
+1. Build the interpreter for WASI:
+   ```bash
+   rustup target add wasm32-wasip1
+   cargo build --release --target wasm32-wasip1
+   ```
+2. Copy `target/wasm32-wasip1/release/<name>.wasm` to `public/wasm/interpreter/interpreter.wasm`.
+3. Point the project at it (already set up in `src/content/projects/interpreter.md`):
+   ```yaml
+   demo:
+     type: wasi
+     wasm: /wasm/interpreter/interpreter.wasm
+     filename: main.txt        # the editor's code is saved to this file and its name passed as the first argument
+     # input: stdin            # use this instead if your interpreter reads the program from stdin
+     examples:
+       - name: Hello
+         code: |
+           print("hello")
+   ```
+
+Until the `.wasm` file exists, the page shows "Playground coming soon".
+
+Other options: `type: bindgen` for a `wasm-pack build --target web` module (point `module:` at the generated
+`.js`; output printed with `console.log` is captured), or `type: iframe` with `src:` for any web page.
+
+## Settings
+
+`site.config.js` holds your name, tagline, email (used as a `mailto:` link on the contact page), social links, the
+navigation and the link to this repository.
+
+## Running locally
+
+Needs [Node.js](https://nodejs.org/) 22.23.4 or newer (24 recommended).
 
 ```bash
-git clone https://github.com/ReelPlum/Portfolio.git
-cd Portfolio
 npm install
-npm run dev      # start a local server with live reload
+npm run dev        # http://localhost:4321/Portfolio/
+npm run build      # static site in dist/
+npm run preview    # serve dist/
 ```
 
-Then open the URL the dev server prints (usually `http://localhost:5173` or similar).
-
-To produce the static site that gets deployed:
+## Tests
 
 ```bash
-npm run build    # output goes to dist/
-npm run preview  # serve the built site locally
+npm test           # unit tests
+npm run test:e2e   # browser tests (first time: npx playwright install chromium)
 ```
 
-## Running the tests _(planned)_
+The browser tests build the site from `tests/fixtures/content` instead of your real posts, so changing your
+content never breaks them. `tests/fixtures/tiny-calc` is a tiny Rust program used to test the WebAssembly
+playground for real.
 
-```bash
-npm test                 # unit tests (Markdown parsing, routing, embeds, ...)
-npm run test:e2e         # browser tests (navigation, theme toggle, embeds)
-npm run test:coverage    # unit tests with a coverage report in coverage/
-```
+House rule: every bug that gets fixed gets a test that reproduces it, marked with a `Regression:` comment.
 
-House rule: **every bug that gets fixed gets a test** that reproduces it, so it can't come back.
+## Deploying to GitHub Pages
 
-## Deploying to GitHub Pages _(planned)_
+1. On GitHub, open **Settings → Pages** and set **Source** to **GitHub Actions**.
+2. Push to `main`. The workflow in `.github/workflows/deploy.yml` runs all tests, builds and publishes the site.
 
-Deployment is meant to be automatic through GitHub Actions:
+The site is served at `https://reelplum.github.io/Portfolio/`. The workflow reads the base path from GitHub, so if
+you rename the repository to `reelplum.github.io` or add a custom domain, it moves to `/` automatically (also set
+`base: '/'` in `site.config.js` so local builds match).
 
-1. In the repository on GitHub, go to **Settings → Pages**.
-2. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-3. Push to `main`. The workflow in `.github/workflows/` installs dependencies, runs the tests, builds the site and publishes it.
-
-The site will be served at `https://reelplum.github.io/Portfolio/`. To use a custom domain, add it under **Settings → Pages → Custom domain** and commit a `CNAME` file containing the domain.
-
-## Project structure _(planned)_
+## Project structure
 
 ```
 .
-├── content/            # Markdown pages, posts and project write-ups
-├── assets/             # Images and other static files
-├── projects/           # Embeddable project demos
-├── src/                # Site JavaScript, styles and icons
-├── tests/              # Unit and end-to-end tests
-└── .github/workflows/  # Build, test and deploy pipeline
+├── src/
+│   ├── content/        # your Markdown
+│   ├── components/     # header, footer, cards, playground, icons
+│   ├── layouts/        # page shell (meta tags, theme script)
+│   ├── lib/            # embeds, WebAssembly runner, SEO helpers (all unit tested)
+│   ├── pages/          # routes
+│   └── styles/         # design tokens and styles
+├── public/             # images, favicon, wasm builds
+├── tests/              # unit, e2e and fixtures
+└── site.config.js
 ```
 
 ## Licence

@@ -1,0 +1,14 @@
+[package]
+name = "tiny-calc"
+version = "0.1.0"
+edition = "2021"
+
+# Example WASI program used by the playground tests.
+# Build: cargo build --release --target wasm32-wasip1
+# Then copy target/wasm32-wasip1/release/tiny-calc.wasm to tests/fixtures/public/wasm/tiny-calc/
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+panic = "abort"
