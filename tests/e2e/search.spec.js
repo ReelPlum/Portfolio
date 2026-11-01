@@ -5,7 +5,7 @@ const bar = (page) => page.getByRole('search').first();
 
 test.describe('search', () => {
   test('shows live results with matching fields highlighted', async ({ page }) => {
-    const errors = trackErrors(page);
+    const errors = await trackErrors(page);
     await page.goto('');
     const input = bar(page).getByRole('searchbox', { name: 'Search projects and posts' });
     await input.fill('interpreter');

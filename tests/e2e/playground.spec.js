@@ -3,7 +3,7 @@ import { trackErrors } from './helpers.js';
 
 test.describe('WASM playground', () => {
   test('runs the program and shows what it printed', async ({ page }) => {
-    const errors = trackErrors(page);
+    const errors = await trackErrors(page);
     await page.goto('projects/tiny-calc/');
     await page.getByRole('button', { name: 'Run' }).click();
     const out = page.locator('[data-pg-output]');

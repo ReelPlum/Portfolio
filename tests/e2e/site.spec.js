@@ -4,7 +4,7 @@ import { trackErrors } from './helpers.js';
 test.describe('pages', () => {
   for (const path of ['', 'projects/', 'blog/', 'about/', 'contact/', 'search/', 'blog/hello-world/', 'projects/tiny-calc/', 'projects/interpreter/']) {
     test(`/${path} renders without errors`, async ({ page }) => {
-      const errors = trackErrors(page);
+      const errors = await trackErrors(page);
       const res = await page.goto(path);
       expect(res.status()).toBe(200);
       await expect(page.locator('h1').first()).toBeVisible();
@@ -91,7 +91,7 @@ test.describe('theme', () => {
 
   // Regression: clicking the toggle threw "blocked" because the page read window.localStorage outside a try.
   test('works when localStorage is blocked', async ({ page }) => {
-    const errors = trackErrors(page);
+    const errors = await trackErrors(page);
     await page.addInitScript(() => {
       Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } });
     });
