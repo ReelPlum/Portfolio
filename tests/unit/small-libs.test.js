@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { iconSvg, hasIcon, animations } from '../../src/lib/icons.js';
-import { resolveTheme, nextTheme, readStored, writeStored } from '../../src/lib/theme.js';
 import { contactLinks } from '../../src/lib/contact.js';
 import { personLd, blogPostingLd, projectLd, ldJson, robotsTxt } from '../../src/lib/seo.js';
 import { demoAsset, demoReady, demoExamples } from '../../src/lib/demo.js';
@@ -27,34 +26,6 @@ describe('icons (Material Symbols)', () => {
   // Regression: "auto_awesome" is not in Material Symbols 0.48 and broke the build.
   it('every icon with an animation exists', () => {
     for (const name of Object.keys(animations)) expect(hasIcon(name), name).toBe(true);
-  });
-});
-
-describe('theme', () => {
-  it('resolves stored choice, falling back to the system', () => {
-    expect(resolveTheme('dark', false)).toBe('dark');
-    expect(resolveTheme('light', true)).toBe('light');
-    expect(resolveTheme(null, true)).toBe('dark');
-    expect(resolveTheme('garbage', false)).toBe('light');
-  });
-  it('toggles', () => {
-    expect(nextTheme('dark')).toBe('light');
-    expect(nextTheme('light')).toBe('dark');
-  });
-  it('survives storage that throws (private mode)', () => {
-    const bad = { getItem() { throw new Error('denied'); }, setItem() { throw new Error('denied'); } };
-    expect(readStored(() => bad)).toBeNull();
-    expect(() => writeStored('dark', () => bad)).not.toThrow();
-    const map = new Map();
-    const ok = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
-    writeStored('dark', () => ok);
-    expect(readStored(() => ok)).toBe('dark');
-  });
-  // Regression: the toggle crashed when merely accessing window.localStorage threw (blocked cookies).
-  it('survives the storage getter itself throwing', () => {
-    const throwing = () => { throw new Error('SecurityError'); };
-    expect(() => writeStored('dark', throwing)).not.toThrow();
-    expect(readStored(throwing)).toBeNull();
   });
 });
 

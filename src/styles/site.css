@@ -35,7 +35,6 @@ main { display: block; min-height: 60vh; }
 .bar { display: flex; align-items: center; gap: 16px; height: 64px; }
 .brand { display: inline-flex; align-items: center; gap: 12px; color: var(--on-surface); font: 400 22px/1 var(--font-display); white-space: nowrap; }
 .brand:hover { text-decoration: none; }
-.brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: var(--on-primary); font-size: 18px; font-weight: 500; }
 .nav { display: flex; gap: 4px; }
 .nav a { display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border-radius: var(--r-full); color: var(--on-surface-variant); font-weight: 500; font-size: 14px; }
 .nav a:hover { background: var(--state-hover); text-decoration: none; }
@@ -174,7 +173,7 @@ main { display: block; min-height: 60vh; }
 .prose th, .prose td { padding: 10px 12px; border-bottom: 1px solid var(--outline-variant); text-align: left; }
 .prose .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 .prose a.ref-link { font-weight: 500; }
-:root[data-theme='dark'] .prose .astro-code, :root[data-theme='dark'] .prose .astro-code span { color: var(--shiki-dark) !important; }
+@media (prefers-color-scheme: dark) { .prose .astro-code, .prose .astro-code span { color: var(--shiki-dark) !important; } }
 
 .embed { position: relative; margin: 2em 0; border-radius: var(--r-lg); overflow: hidden; background: var(--surface-container); }
 .embed-youtube, .embed-vimeo { aspect-ratio: 16 / 9; }

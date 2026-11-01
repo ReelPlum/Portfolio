@@ -1,7 +1,6 @@
 ---
 import site from '../../site.config.js';
 import Icon from './Icon.astro';
-import ThemeToggle from './ThemeToggle.astro';
 import SearchBox from './SearchBox.astro';
 import { withBase, isActive } from '../lib/content.js';
 const base = import.meta.env.BASE_URL;
@@ -11,7 +10,7 @@ const onSearchPage = isActive('/search/', path);
 ---
 <header class="site-header">
   <div class="container bar">
-    <a class="brand" href={withBase('/', base)}><span class="brand-mark" aria-hidden="true">{site.author.charAt(0)}</span>{site.title}</a>
+    <a class="brand" href={withBase('/', base)}>{site.title}</a>
     <nav class="nav" aria-label="Main">
       {site.nav.map((item) => (
         <a href={withBase(item.href, base)} aria-current={isActive(item.href, path) ? 'page' : undefined}>{item.label}</a>
@@ -19,7 +18,6 @@ const onSearchPage = isActive('/search/', path);
     </nav>
     {!onSearchPage && <div class="bar-search"><SearchBox /></div>}
     <div class="bar-actions">
-      <ThemeToggle />
       <button class="icon-btn menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
         <span class="menu-open"><Icon name="menu" size={24} /></span>
         <span class="menu-close" hidden><Icon name="close" size={24} /></span>
