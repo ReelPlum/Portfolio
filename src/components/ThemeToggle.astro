@@ -25,7 +25,7 @@ import Icon from './Icon.astro';
     btn.addEventListener('click', () => {
       const t = nextTheme(document.documentElement.dataset.theme);
       document.documentElement.dataset.theme = t;
-      writeStored(localStorage, t);
+      writeStored(t);
       document.querySelectorAll('[data-theme-toggle]').forEach((b) => b.dispatchEvent(new Event('theme-sync')));
     });
     btn.addEventListener('theme-sync', sync);

@@ -11,17 +11,18 @@ export function nextTheme(current) {
   return current === 'dark' ? 'light' : 'dark';
 }
 
-export function readStored(storage) {
+// Storage is passed as a getter: even *reading* window.localStorage throws when cookies are blocked.
+export function readStored(getStorage = () => globalThis.localStorage) {
   try {
-    return storage?.getItem(STORAGE_KEY) ?? null;
+    return getStorage()?.getItem(STORAGE_KEY) ?? null;
   } catch {
     return null; // storage can throw in private mode / when blocked
   }
 }
 
-export function writeStored(storage, value) {
+export function writeStored(value, getStorage = () => globalThis.localStorage) {
   try {
-    storage?.setItem(STORAGE_KEY, value);
+    getStorage()?.setItem(STORAGE_KEY, value);
   } catch {
     /* ignore */
   }

@@ -10,8 +10,6 @@ export default {
   author: 'Frederik',
   tagline: 'I build interpreters, tools and things for the web.',
   description: 'Projects, writing and experiments by Frederik.',
-  // Which design to use: 'keynote' | 'studio' | 'editorial'
-  design: process.env.DESIGN || 'keynote',
   email: 'hello@example.com', // TODO: your address. Shown on the contact page as a mailto: link
   social: [
     { label: 'GitHub', href: 'https://github.com/ReelPlum', icon: 'github' },

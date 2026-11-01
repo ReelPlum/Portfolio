@@ -7,9 +7,7 @@ import '@fontsource-variable/inter';
 import '../styles/base.css';
 import '../styles/icons.css';
 import '../styles/components.css';
-import '../styles/designs/keynote.css';
-import '../styles/designs/studio.css';
-import '../styles/designs/editorial.css';
+import '../styles/design.css';
 
 const { title, description = site.description, image, type = 'website', published, jsonLd = [] } = Astro.props;
 const fullTitle = title ? `${title} · ${site.title}` : site.title;
@@ -18,7 +16,7 @@ const base = import.meta.env.BASE_URL;
 const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base) ? base.replace(/\/$/, '') + image : image, Astro.site) : null;
 ---
 <!doctype html>
-<html lang="en" data-design={site.design} data-theme="light">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

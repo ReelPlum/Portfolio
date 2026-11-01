@@ -10,10 +10,10 @@ export function demoAsset(demo) {
 }
 
 /** False when the demo points at a file that has not been dropped into public/ yet. */
-export function demoReady(demo, publicDir = join(process.cwd(), 'public')) {
+export function demoReady(demo, publicDirs = [join(process.cwd(), 'public'), process.env.EXTRA_PUBLIC_DIR].filter(Boolean)) {
   if (!demo) return false;
   const asset = demoAsset(demo);
-  return asset === null || existsSync(join(publicDir, asset));
+  return asset === null || [].concat(publicDirs).some((dir) => existsSync(join(dir, asset)));
 }
 
 export { demoExamplesClient as demoExamples } from './playground-client.js';

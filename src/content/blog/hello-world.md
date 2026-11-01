@@ -1,28 +1,12 @@
 ---
 title: Hello, world
 date: 2026-11-01
-description: Why I built this site, and how adding a post is just adding a markdown file.
+description: The first post on my new site.
 tags: [Meta]
 ---
 
-Welcome to my new site. Every post is a markdown file in `src/content/blog/`.
+This is a starter post. Edit or delete `src/content/blog/hello-world.md` and add your own.
 
-## Images
-
-![Mountains at dusk](/images/sample-photo.svg)
-
-## Video
-
-Paste a YouTube or Vimeo link on its own line and it becomes a player:
-
-https://www.youtube.com/watch?v=aqz-KE-bpKQ
-
-https://vimeo.com/76979871
-
-## Code
-
-```rust
-fn main() {
-    println!("Hello from Rust");
-}
-```
+Every post is a markdown file in `src/content/blog/`. Images go in `public/images/` and are
+written as `![Description](/images/file.png)`. A YouTube or Vimeo link on its own line becomes a
+video player.

@@ -3,9 +3,11 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const md = '**/[^_]*.{md,mdx}'; // files starting with _ are ignored (drafts / partials)
+// The tests build the site from tests/fixtures/content so they don't depend on your real posts.
+const root = process.env.CONTENT_DIR || './src/content';
 
 const blog = defineCollection({
-  loader: glob({ pattern: md, base: './src/content/blog' }),
+  loader: glob({ pattern: md, base: `${root}/blog` }),
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
@@ -45,7 +47,7 @@ const demo = z.discriminatedUnion('type', [
 ]);
 
 const projects = defineCollection({
-  loader: glob({ pattern: md, base: './src/content/projects' }),
+  loader: glob({ pattern: md, base: `${root}/projects` }),
   schema: z.object({
     title: z.string(),
     summary: z.string(),
@@ -62,7 +64,7 @@ const projects = defineCollection({
 });
 
 const pages = defineCollection({
-  loader: glob({ pattern: md, base: './src/content/pages' }),
+  loader: glob({ pattern: md, base: `${root}/pages` }),
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),

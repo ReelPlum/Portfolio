@@ -60,5 +60,5 @@ $RECYCLE.BIN/
 
 # Design preview builds and Rust build output
 dist-*/
-examples/*/target/
+tests/fixtures/tiny-calc/target/
 .astro/
