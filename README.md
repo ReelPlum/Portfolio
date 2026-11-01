@@ -113,7 +113,7 @@ navigation and the link to this repository.
 
 ## Running locally
 
-Needs [Node.js](https://nodejs.org/) 22 or newer.
+Needs [Node.js](https://nodejs.org/) 22.23.4 or newer (24 recommended).
 
 ```bash
 npm install
