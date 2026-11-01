@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { visit } from 'unist-util-visit';
 import { codeBlockHtml, tableBlockHtml, parseInclude, sliceLines, metaTitle } from './code-blocks.js';
 import { iconSvg } from './icons.js';
+import { renderPlotBlock } from './plot.js';
 import { withBase } from './content.js';
 
 const SKIP_LANGS = new Set(['math', 'preamble', 'latex-preamble']);
@@ -49,6 +50,14 @@ export function remarkCode({ publicDirs = ['public'], base = '/' } = {}) {
     });
     visit(tree, 'code', (node, index, parent) => {
       if (!parent || SKIP_LANGS.has((node.lang || '').toLowerCase())) return;
+      if ((node.lang || '').toLowerCase() === 'plot') {
+        try {
+          parent.children[index] = { type: 'html', value: renderPlotBlock(node.value, { publicDirs, hrefFor: (p) => withBase(p, base) }) };
+        } catch (e) {
+          throw new Error(`Plot: ${e.message}${file?.path ? ` (in ${file.path})` : ''}`);
+        }
+        return;
+      }
       const replacement = { type: 'html', value: '' };
       parent.children[index] = replacement;
       jobs.push(codeBlockHtml(node.value, { lang: node.lang, title: metaTitle(node.meta) }).then((h) => { replacement.value = h; }));

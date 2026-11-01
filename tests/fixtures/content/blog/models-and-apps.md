@@ -28,3 +28,28 @@ tags: [Graphics]
 Get [the source](/files/tiny-calc.zip) or [the scores](/files/scores.csv "download").
 
 [Lecture notes](/files/lecture-notes.pdf "download")
+
+## Charts
+
+```plot
+file: /files/visitors.csv
+type: line
+x: Month
+y: Posts, Projects
+title: Visitors per month
+y-label: Visitors
+```
+
+```plot
+file: /files/scores.csv
+type: bar
+x: Name
+y: "Score, out of 100"
+```
+
+```plot
+file: /files/visitors.csv
+type: scatter
+x: Posts
+y: Projects
+```

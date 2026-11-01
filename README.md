@@ -19,6 +19,7 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - 3D models (`.glb` / `.gltf`) you can rotate, WebAssembly canvas apps such as Rust + wgpu renderers, and text
   and CSV files shown inline
 - Download links with an icon and the file size
+- Line, bar and scatter charts from CSV files, drawn at build time
 - Links to other sites open in a new tab
 - Wide layout for big screens: posts get a side column with the details and "On this page"
 - Links between posts and projects with `[[slug]]`, and a "Referenced by" list on each page
@@ -167,6 +168,29 @@ wasm-bindgen --target web --out-dir public/wasm/renderer target/wasm32-unknown-u
 ```
 
 Enable wgpu's `webgl` feature to also run in browsers without WebGPU.
+
+### Charts from CSV files
+
+Put a CSV file in `public/` and add a `plot` block where the chart should go:
+
+````markdown
+```plot
+file: /files/results.csv
+type: line            # line, bar or scatter
+x: Month
+y: Posts, Projects    # up to 3 columns; quote names with commas: "Score, out of 100"
+title: Visitors per month
+x-label: Month        # optional, defaults to the x column
+y-label: Visitors     # optional
+height: 360           # optional, in pixels
+```
+````
+
+The first row of the CSV is the header. Numbers and dates (`2026-06` or `2026-06-15`) are detected
+automatically. With more than one y column you get a legend, and bar charts become grouped bars. Each point shows
+its value on hover, and a "Show the data" table sits under the chart. Charts are drawn when the site is built
+([Observable Plot](https://observablehq.com/plot/)), so they need no JavaScript and the series colours switch
+with light and dark mode. A missing file or column fails the build with a message saying what's wrong.
 
 ### Download links
 

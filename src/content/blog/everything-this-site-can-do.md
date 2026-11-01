@@ -1,7 +1,7 @@
 ---
 title: Everything this site can do
 date: 2026-10-30
-description: "One post that uses every feature: images, videos, PDFs, 3D models, WebAssembly apps, maths with macros, code, file views, downloads, references and links."
+description: "One post that uses every feature: images, videos, PDFs, 3D models, WebAssembly apps, maths with macros, code, file views, charts, downloads, references and links."
 tags: [Meta]
 ---
 
@@ -89,6 +89,31 @@ the path on its own line:
 /files/interpreter-notes.txt
 
 /files/benchmarks.csv
+
+## Charts from CSV files
+
+A `plot` block draws a chart from a CSV file in `public/`. Pick the type (`line`, `bar` or `scatter`), the
+column for the x axis and up to three columns for y. Charts are drawn when the site is built, follow light and
+dark mode, and have a "Show the data" table:
+
+```plot
+file: /files/fib-timings.csv
+type: line
+x: n
+y: Tree-walking (ms), Bytecode (ms)
+title: Time to compute fib(n)
+x-label: n
+y-label: Milliseconds
+```
+
+```plot
+file: /files/benchmarks.csv
+type: bar
+x: Program
+y: Tree-walking (ms), Bytecode (ms)
+title: Run time per benchmark
+y-label: Milliseconds
+```
 
 ## Downloads
 

@@ -103,3 +103,38 @@ test.describe('download links', () => {
     expect(download.suggestedFilename()).toBe('lecture-notes.pdf');
   });
 });
+
+test.describe('charts from CSV files', () => {
+  test('line, bar and scatter charts are drawn at build time with a legend and a data table', async ({ page }) => {
+    await page.goto('blog/models-and-apps/');
+    const charts = page.locator('figure.plot');
+    await expect(charts).toHaveCount(3);
+    const line = charts.nth(0);
+    await expect(line.locator('.plot-title')).toHaveText('Visitors per month');
+    await expect(line.locator('.plot-legend li')).toHaveText(['Posts', 'Projects']);
+    await expect(line.getByRole('img', { name: 'Visitors per month of Posts, Projects by Month' })).toBeVisible();
+    expect(await line.locator('svg g.series-1 path').count()).toBeGreaterThan(0);
+    expect(await line.locator('svg g.series-1 circle').count()).toBe(4);
+    await expect(charts.nth(1).locator('svg g.series-1 rect')).toHaveCount(3);
+    await expect(charts.nth(2).locator('svg g.series-1 circle')).toHaveCount(4);
+    // The data table is there for anyone who can't read the chart.
+    await line.getByText('Show the data').click();
+    await expect(line.locator('.plot-data tbody tr')).toHaveCount(4);
+    await expect(line.locator('.plot-data tbody tr').first()).toContainText('2026-06-01');
+  });
+
+  test('series colours change with dark mode and legend text stays in text colour', async ({ page }) => {
+    const colours = {};
+    for (const scheme of ['light', 'dark']) {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.goto('blog/models-and-apps/');
+      const line = page.locator('figure.plot').first();
+      colours[scheme] = await line.locator('svg g.series-1 circle').first().evaluate((c) => getComputedStyle(c).fill);
+      const legendText = await line.locator('.plot-legend li').first().evaluate((li) => getComputedStyle(li).color);
+      const swatch = await line.locator('.plot-swatch').first().evaluate((s) => getComputedStyle(s).backgroundColor);
+      expect(legendText).not.toBe(swatch);
+    }
+    expect(colours.light).toBe('rgb(42, 120, 214)');
+    expect(colours.dark).toBe('rgb(57, 135, 229)');
+  });
+});
