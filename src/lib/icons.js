@@ -1,40 +1,53 @@
-import * as lucide from 'lucide-static';
+import { readFileSync, existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 
-// Brand icons were removed from Lucide, so the few we need live here.
-const extra = {
-  github: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>',
+// Material Symbols (Rounded) from @material-symbols/svg-400. Each icon is rendered with both its
+// outlined and filled shapes; on hover the icon fills in and plays a small motion (src/styles/icons.css).
+const require = createRequire(import.meta.url);
+const ROOT = join(dirname(require.resolve('@material-symbols/svg-400/package.json')), 'rounded');
+
+// Brand marks are not part of Material Symbols.
+const brands = {
+  github: 'M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z',
 };
 
-// Which micro-animation each icon plays when its button / link is hovered, focused or pressed.
-// The animations themselves are in src/styles/icons.css.
+// Which motion each icon plays when its button / link is hovered, focused or pressed.
 export const animations = {
-  sun: 'spin', moon: 'swing', 'sun-moon': 'spin', monitor: 'pop',
-  'arrow-right': 'nudge-x', 'arrow-left': 'nudge-x-back', 'arrow-up-right': 'nudge-diag', 'chevron-right': 'nudge-x',
-  'external-link': 'nudge-diag', github: 'wiggle', mail: 'wiggle', rss: 'pulse',
-  play: 'pop', 'rotate-ccw': 'spin-back', copy: 'pop', check: 'draw', menu: 'pop', x: 'spin',
-  'folder-code': 'bounce', 'pen-line': 'wiggle', user: 'bounce', home: 'bounce', search: 'wiggle',
-  calendar: 'bounce', tag: 'swing', 'square-terminal': 'pop', 'link': 'wiggle',
+  light_mode: 'spin', dark_mode: 'swing',
+  arrow_forward: 'nudge-x', arrow_back: 'nudge-x-back', north_east: 'nudge-diag', chevron_right: 'nudge-x', open_in_new: 'nudge-diag',
+  mail: 'wiggle', rss_feed: 'pulse', github: 'wiggle', link: 'wiggle',
+  play_arrow: 'pop', restart_alt: 'spin-back', content_copy: 'pop', check: 'pop', menu: 'pop', close: 'spin',
+  search: 'wiggle', calendar_today: 'bounce', terminal: 'pop', home: 'bounce', person: 'bounce', code: 'pop',
+  article: 'bounce', stars_2: 'pulse', schedule: 'spin',
 };
 
-export function toPascal(name) {
-  return String(name).split('-').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+const cache = new Map();
+function paths(name) {
+  if (!cache.has(name)) {
+    const file = (suffix) => join(ROOT, `${name}${suffix}.svg`);
+    if (!existsSync(file(''))) throw new Error(`Unknown icon "${name}"`);
+    const d = (f) => (existsSync(f) ? /<path d="([^"]+)"/.exec(readFileSync(f, 'utf8'))?.[1] : null);
+    cache.set(name, { outline: d(file('')), fill: d(file('-fill')) });
+  }
+  return cache.get(name);
 }
 
 export function hasIcon(name) {
-  return Boolean(extra[name] || lucide[toPascal(name)]);
+  try {
+    return Boolean(brands[name] || paths(name).outline);
+  } catch {
+    return false;
+  }
 }
 
-/** Returns inline SVG markup for an icon, sized and labelled. Throws on unknown names so typos fail the build. */
+/** Inline SVG for an icon. Throws on unknown names so typos fail the build. */
 export function iconSvg(name, { size = 20, label } = {}) {
-  const raw = extra[name] || lucide[toPascal(name)];
-  if (!raw) throw new Error(`Unknown icon "${name}"`);
   const anim = animations[name] || 'pop';
-  const a11y = label ? `role="img" aria-label="${String(label).replace(/"/g, '&quot;')}"` : 'aria-hidden="true"';
-  return raw
-    .replace(/\s+/g, ' ')
-    .replace(/^\s*<svg\b[^>]*?class="[^"]*"/, '<svg')
-    .replace(/<svg\b/, `<svg class="icon" data-icon="${name}" data-anim="${anim}" ${a11y} focusable="false"`)
-    .replace(/width="24"/, `width="${size}"`)
-    .replace(/height="24"/, `height="${size}"`)
-    .trim();
+  const a11y = label ? `role="img" aria-label="${String(label).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"` : 'aria-hidden="true"';
+  const attrs = `class="icon" data-icon="${name}" data-anim="${anim}" ${a11y} focusable="false" width="${size}" height="${size}" fill="currentColor"`;
+  if (brands[name]) return `<svg ${attrs} viewBox="0 0 24 24"><path d="${brands[name]}"/></svg>`;
+  const { outline, fill } = paths(name);
+  const filled = fill && fill !== outline ? `<path class="icon-fill" d="${fill}"/>` : '';
+  return `<svg ${attrs} viewBox="0 -960 960 960"><path class="icon-outline" d="${outline}"/>${filled}</svg>`;
 }

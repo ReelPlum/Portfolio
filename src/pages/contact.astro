@@ -12,17 +12,17 @@ const links = contactLinks(site);
 <Base title={intro?.data.title ?? 'Contact'} description={intro?.data.description ?? `Get in touch with ${site.author}.`}>
   <article class="article">
     <header class="article-header">
-      <h1 data-reveal>{intro?.data.title ?? 'Contact'}</h1>
-      {intro?.data.description && <p class="lede" data-reveal>{intro.data.description}</p>}
+      <h1>{intro?.data.title ?? 'Contact'}</h1>
+      {intro?.data.description && <p class="lede">{intro.data.description}</p>}
     </header>
     {Content && <div class="prose"><Content /></div>}
     <ul class="contact-list">
-      {links.map((l, i) => (
-        <li data-reveal data-reveal-delay={i * 0.05}>
+      {links.map((l) => (
+        <li>
           <a class="contact-row" href={l.href} data-icon-trigger>
             <span class="contact-icon"><Icon name={l.icon} size={20} /></span>
             <span class="contact-text"><strong>{l.label}</strong><small>{l.detail}</small></span>
-            <Icon name="arrow-up-right" size={18} />
+            <Icon name="open_in_new" size={20} />
           </a>
         </li>
       ))}

@@ -3,18 +3,19 @@ import Icon from './Icon.astro';
 import { withBase, formatDate } from '../lib/content.js';
 const { posts } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const href = (p) => withBase(p.collection === 'projects' ? `/projects/${p.id}/` : `/blog/${p.id}/`, base);
 ---
 <ul class="post-list">
-  {posts.map((post, i) => (
-    <li data-reveal data-reveal-delay={Math.min(i, 4) * 0.05}>
-      <a class="post-row" href={withBase(`/blog/${post.id}/`, base)} data-icon-trigger>
-        {post.data.cover && <img class="post-thumb" src={withBase(post.data.cover, base)} alt="" loading="lazy" />}
+  {posts.map((post) => (
+    <li>
+      <a class="post-row" href={href(post)} data-icon-trigger>
+        <span class="post-row-icon"><Icon name={post.collection === 'projects' ? 'code' : 'article'} size={20} /></span>
         <span class="post-row-text">
-          <span class="post-row-date">{formatDate(post.data.date)}</span>
           <span class="post-row-title">{post.data.title}</span>
-          {post.data.description && <span class="post-row-desc">{post.data.description}</span>}
+          {(post.data.description || post.data.summary) && <span class="post-row-desc">{post.data.description || post.data.summary}</span>}
         </span>
-        <Icon name="chevron-right" size={18} />
+        {post.data.date && <span class="post-row-date">{formatDate(post.data.date)}</span>}
+        <Icon name="chevron_right" size={20} />
       </a>
     </li>
   ))}

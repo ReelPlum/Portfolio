@@ -12,7 +12,7 @@ const config = JSON.stringify({ ...demo, url });
 <section class="playground" aria-label={`${title} playground`}>
   {!ready ? (
     <div class="playground-soon">
-      <Icon name="square-terminal" size={32} />
+      <Icon name="terminal" size={36} />
       <h3>Playground coming soon</h3>
       <p>The live demo will appear here once the build is added.</p>
     </div>
@@ -21,7 +21,7 @@ const config = JSON.stringify({ ...demo, url });
   ) : (
     <div class="playground-app" data-playground={config}>
       <div class="playground-toolbar">
-        <span class="playground-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="playground-label"><Icon name="terminal" size={20} />Playground</span>
         {examples.length > 1 && (
           <label class="playground-examples">
             <span class="visually-hidden">Example</span>
@@ -31,12 +31,12 @@ const config = JSON.stringify({ ...demo, url });
           </label>
         )}
         <span class="playground-spacer"></span>
-        <button class="icon-btn" type="button" data-pg-reset aria-label="Reset code" title="Reset"><Icon name="rotate-ccw" size={16} /></button>
+        <button class="icon-btn" type="button" data-pg-reset aria-label="Reset code" title="Reset"><Icon name="restart_alt" size={20} /></button>
         <button class="icon-btn" type="button" data-pg-copy aria-label="Copy code" title="Copy">
-          <span class="pg-copy-icon"><Icon name="copy" size={16} /></span>
-          <span class="pg-check-icon" hidden><Icon name="check" size={16} /></span>
+          <span class="pg-copy-icon"><Icon name="content_copy" size={20} /></span>
+          <span class="pg-check-icon" hidden><Icon name="check" size={20} /></span>
         </button>
-        <button class="btn" type="button" data-pg-run><Icon name="play" size={14} />Run</button>
+        <button class="btn" type="button" data-pg-run><Icon name="play_arrow" size={20} />Run</button>
       </div>
       <label class="visually-hidden" for={`pg-${title}`}>Code</label>
       <textarea id={`pg-${title}`} class="playground-editor" data-pg-editor spellcheck="false" autocapitalize="off" autocomplete="off">{examples[0]?.code ?? ''}</textarea>

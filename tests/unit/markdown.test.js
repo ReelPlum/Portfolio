@@ -6,9 +6,18 @@ import rehypeRaw from 'rehype-raw';
 import rehypeStringify from 'rehype-stringify';
 import { remarkEmbeds } from '../../src/lib/remark-embeds.js';
 import { rehypeBaseUrls } from '../../src/lib/rehype-base-urls.js';
+import { remarkReferences } from '../../src/lib/remark-references.js';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+
+const targets = new Map([
+  ['blog/hello', { collection: 'blog', slug: 'hello', title: 'Hello post', url: '/blog/hello/' }],
+  ['projects/interp', { collection: 'projects', slug: 'interp', title: 'My Interpreter', url: '/projects/interp/' }],
+]);
 
 const render = async (md, base = '/') => String(await unified()
-  .use(remarkParse).use(remarkEmbeds).use(remarkRehype, { allowDangerousHtml: true }).use(rehypeRaw)
+  .use(remarkParse).use(remarkMath).use(remarkEmbeds, { base }).use(remarkReferences, { targets, base })
+  .use(remarkRehype, { allowDangerousHtml: true }).use(rehypeRaw).use(rehypeKatex)
   .use(rehypeBaseUrls, { base }).use(rehypeStringify).process(md));
 
 describe('remarkEmbeds', () => {
@@ -51,5 +60,39 @@ describe('rehypeBaseUrls', () => {
   });
   it('does nothing when the base is /', async () => {
     expect(await render('![A](/images/a.png)', '/')).toContain('src="/images/a.png"');
+  });
+});
+
+describe('PDF embeds', () => {
+  it('turns a site-relative PDF path on its own line into a viewer', async () => {
+    const html = await render('/files/notes.pdf');
+    expect(html).toContain('<figure class="embed embed-pdf" data-pdf');
+  });
+  // Regression: embeds are raw HTML, so the base path must be added when the embed is created.
+  it('adds the base path to embedded PDFs', async () => {
+    expect(await render('/files/notes.pdf', '/Portfolio/')).toContain('href="/Portfolio/files/notes.pdf"');
+  });
+});
+
+describe('LaTeX', () => {
+  it('renders inline and display maths with KaTeX', async () => {
+    const html = await render('Inline $a^2 + b^2 = c^2$.\n\n$$\n\\frac{1}{2}\n$$');
+    expect(html).toContain('class="katex"');
+    expect(html).toContain('class="katex-display"');
+    expect(html).not.toContain('$a^2');
+  });
+});
+
+describe('references', () => {
+  it('links [[slug]] to the post or project by its title', async () => {
+    const html = await render('See [[interp]] and [[blog/hello|this post]].', '/Portfolio/');
+    expect(html).toContain('<a href="/Portfolio/projects/interp/" class="ref-link" data-ref="projects/interp">My Interpreter</a>');
+    expect(html).toContain('<a href="/Portfolio/blog/hello/" class="ref-link" data-ref="blog/hello">this post</a>');
+  });
+  it('fails the build for references that point nowhere', async () => {
+    await expect(render('See [[nope]].')).rejects.toThrow(/does not match any post/);
+  });
+  it('leaves references inside code alone', async () => {
+    expect(await render('`[[interp]]`')).toContain('<code>[[interp]]</code>');
   });
 });

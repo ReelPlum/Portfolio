@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { iconSvg, hasIcon, toPascal, animations } from '../../src/lib/icons.js';
+import { iconSvg, hasIcon, animations } from '../../src/lib/icons.js';
 import { resolveTheme, nextTheme, readStored, writeStored } from '../../src/lib/theme.js';
 import { contactLinks } from '../../src/lib/contact.js';
 import { personLd, blogPostingLd, projectLd, ldJson, robotsTxt } from '../../src/lib/seo.js';
@@ -8,23 +8,26 @@ import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-describe('icons', () => {
-  it('renders sized, decorative icons with an animation', () => {
-    const svg = iconSvg('sun', { size: 18 });
-    expect(svg).toMatch(/^<svg class="icon" data-icon="sun" data-anim="spin" aria-hidden="true"/);
-    expect(svg).toContain('width="18"');
-    expect(svg).not.toContain('lucide-sun');
+describe('icons (Material Symbols)', () => {
+  it('renders sized, decorative icons with an outline and a filled shape', () => {
+    const svg = iconSvg('light_mode', { size: 18 });
+    expect(svg).toMatch(/^<svg class="icon" data-icon="light_mode" data-anim="spin" aria-hidden="true"/);
+    expect(svg).toContain('width="18" height="18"');
+    expect(svg).toContain('viewBox="0 -960 960 960"');
+    expect(svg).toContain('class="icon-outline"');
+    expect(svg).toContain('class="icon-fill"');
   });
   it('labels icons that stand alone', () => {
     expect(iconSvg('github', { label: 'GitHub "x"' })).toContain('role="img" aria-label="GitHub &quot;x&quot;"');
   });
   it('throws on unknown icons so typos fail the build', () => {
-    expect(() => iconSvg('definitely-not-an-icon')).toThrow(/Unknown icon/);
+    expect(() => iconSvg('definitely_not_an_icon')).toThrow(/Unknown icon/);
+    expect(hasIcon('definitely_not_an_icon')).toBe(false);
   });
+  // Regression: "auto_awesome" is not in Material Symbols 0.48 and broke the build.
   it('every icon with an animation exists', () => {
     for (const name of Object.keys(animations)) expect(hasIcon(name), name).toBe(true);
   });
-  it('toPascal', () => expect(toPascal('arrow-up-right')).toBe('ArrowUpRight'));
 });
 
 describe('theme', () => {

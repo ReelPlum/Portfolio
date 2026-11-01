@@ -6,13 +6,17 @@ const VIMEO_HOSTS = new Set(['vimeo.com', 'www.vimeo.com', 'player.vimeo.com']);
 const VIDEO_EXT = /\.(mp4|webm|mov|ogv)$/i;
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
 
+const LOCAL = 'http://local.invalid';
 function parse(url) {
+  const raw = String(url).trim();
   try {
-    return new URL(String(url).trim());
+    // site-relative paths like /files/notes.pdf are allowed too
+    return raw.startsWith('/') && !raw.startsWith('//') ? new URL(raw, LOCAL) : new URL(raw);
   } catch {
     return null;
   }
 }
+const hrefOf = (u) => (u.origin === LOCAL ? u.pathname + u.search + u.hash : u.href);
 
 /** Parses "1m30s", "90", "90s" into seconds. */
 export function parseStart(t) {
@@ -57,7 +61,8 @@ export function embedFor(url) {
     return { provider: 'vimeo', id, src };
   }
 
-  if (VIDEO_EXT.test(u.pathname)) return { provider: 'video', src: u.href };
+  if (VIDEO_EXT.test(u.pathname)) return { provider: 'video', src: hrefOf(u) };
+  if (/\.pdf$/i.test(u.pathname)) return { provider: 'pdf', src: hrefOf(u) };
   return null;
 }
 
@@ -65,6 +70,11 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').repl
 
 export function embedHtml(embed, title = '') {
   if (!embed) return '';
+  if (embed.provider === 'pdf') {
+    // Rendered page by page with pdf.js (src/lib/pdf-viewer.js); the link is the no-JS fallback.
+    const name = title || decodeURIComponent(embed.src.split('/').pop());
+    return `<figure class="embed embed-pdf" data-pdf><div class="pdf-pages"></div><figcaption><a href="${esc(embed.src)}" target="_blank" rel="noopener">${esc(name)}</a></figcaption></figure>`;
+  }
   if (embed.provider === 'video') {
     return `<figure class="embed embed-video"><video src="${esc(embed.src)}" controls playsinline preload="metadata"></video></figure>`;
   }

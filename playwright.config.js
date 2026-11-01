@@ -17,12 +17,12 @@ export default defineConfig({
     launchOptions: process.env.PW_CHROMIUM ? { executablePath: process.env.PW_CHROMIUM } : {},
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /mobile\.spec\.js/ },
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] }, testIgnore: /mobile\.spec\.js/, grepInvert: process.env.REAL_MODEL ? undefined : /@real-model/ },
     { name: 'mobile', use: { ...devices['Pixel 7'] }, testMatch: /mobile\.spec\.js/ },
   ],
   webServer: {
     command: `npm run build && npx astro preview --port ${PORT} --ignore-lock`,
-    env: { CONTENT_DIR: 'tests/fixtures/content' },
+    env: { CONTENT_DIR: 'tests/fixtures/content', SEARCH_EMBEDDINGS: process.env.SEARCH_EMBEDDINGS || 'hash' },
     url: `http://localhost:${PORT}${base}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

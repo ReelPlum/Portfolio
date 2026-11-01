@@ -1,0 +1,109 @@
+---
+// Search bar. In the header it shows live results in a panel; on /search/ it fills the page.
+import Icon from './Icon.astro';
+import { iconSvg } from '../lib/icons.js';
+import { withBase } from '../lib/content.js';
+const { variant = 'bar', value = '' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const id = variant === 'page' ? 'search-page-input' : 'search-bar-input';
+// Icons for results rendered in the browser (icons are generated at build time).
+const icons = JSON.stringify({
+  project: iconSvg('code', { size: 16 }),
+  post: iconSvg('article', { size: 16 }),
+  semantic: iconSvg('stars_2', { size: 14 }),
+  arrow: iconSvg('arrow_forward', { size: 18 }),
+});
+---
+<form class={`search search--${variant}`} role="search" action={withBase('/search/', base)} method="get" data-search={variant} data-icons={icons}>
+  <label class="search-field" data-icon-trigger>
+    <Icon name="search" size={22} />
+    <span class="visually-hidden">Search projects and posts</span>
+    <input id={id} type="search" name="q" value={value} placeholder="Search projects and posts" autocomplete="off" spellcheck="false" aria-controls={`${id}-results`} />
+    {variant === 'bar' && <kbd aria-hidden="true">/</kbd>}
+    <button class="icon-btn search-clear" type="button" aria-label="Clear search" hidden><Icon name="close" size={20} /></button>
+  </label>
+  {variant === 'bar' ? (
+    <div class="search-panel" hidden>
+      <p class="search-status" aria-live="polite"></p>
+      <ul class="search-results" id={`${id}-results`}></ul>
+      <a class="search-all" href={withBase('/search/', base)}>See all results<Icon name="arrow_forward" size={18} /></a>
+    </div>
+  ) : (
+    <div class="search-page-results">
+      <p class="search-status" aria-live="polite"></p>
+      <ul class="search-results" id={`${id}-results`}></ul>
+    </div>
+  )}
+</form>
+
+<script>
+  import { search, renderResults, loadIndex } from '../lib/search-client.js';
+
+  const STATUS = {
+    loading: 'Keyword matches shown. Loading semantic search…',
+    on: 'Including results with a similar meaning',
+    off: '',
+  };
+
+  for (const form of document.querySelectorAll('[data-search]')) {
+    const variant = form.dataset.search;
+    const icons = JSON.parse(form.dataset.icons);
+    const input = form.querySelector('input');
+    const list = form.querySelector('.search-results');
+    const status = form.querySelector('.search-status');
+    const panel = form.querySelector('.search-panel');
+    const all = form.querySelector('.search-all');
+    const clear = form.querySelector('.search-clear');
+    let seq = 0;
+
+    const run = () => {
+      const q = input.value;
+      const mine = ++seq;
+      clear.hidden = !q;
+      if (variant === 'page') {
+        const url = new URL(location.href);
+        if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+        history.replaceState(null, '', url);
+      }
+      if (!q.trim()) {
+        list.replaceChildren();
+        status.textContent = '';
+        if (panel) panel.hidden = true;
+        return;
+      }
+      if (all) all.href = `${form.action}?q=${encodeURIComponent(q)}`;
+      search(q, (results, { semantic }) => {
+        if (mine !== seq) return; // a newer query is running
+        renderResults(list, results, q, { limit: variant === 'bar' ? 5 : Infinity, icons });
+        status.innerHTML = '';
+        if (!results.length) status.textContent = semantic === 'loading' ? 'Searching…' : `No results for “${q}”`;
+        else if (STATUS[semantic]) {
+          if (semantic === 'on') status.insertAdjacentHTML('beforeend', icons.semantic);
+          status.append(STATUS[semantic]);
+        }
+        if (panel) panel.hidden = false;
+        if (all) all.hidden = results.length <= 5;
+      });
+    };
+
+    input.addEventListener('input', run);
+    input.addEventListener('focus', () => { loadIndex(); if (input.value && panel) run(); });
+    clear.addEventListener('click', () => { input.value = ''; run(); input.focus(); });
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel) { panel.hidden = true; input.blur(); }
+    });
+    if (panel) {
+      document.addEventListener('click', (e) => { if (!form.contains(e.target)) panel.hidden = true; });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !/^(input|textarea|select)$/i.test(document.activeElement?.tagName || '') && !document.activeElement?.isContentEditable) {
+          e.preventDefault();
+          input.focus();
+        }
+      });
+    }
+    if (variant === 'page') {
+      const q = new URLSearchParams(location.search).get('q');
+      if (q) { input.value = q; run(); }
+    }
+  }
+</script>

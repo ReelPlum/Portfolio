@@ -15,8 +15,8 @@ const { Content } = await render(page);
 <Base title={page.data.title} description={page.data.description}>
   <article class="article">
     <header class="article-header">
-      <h1 data-reveal>{page.data.title}</h1>
-      {page.data.description && <p class="lede" data-reveal>{page.data.description}</p>}
+      <h1>{page.data.title}</h1>
+      {page.data.description && <p class="lede">{page.data.description}</p>}
     </header>
     <div class="prose"><Content /></div>
   </article>

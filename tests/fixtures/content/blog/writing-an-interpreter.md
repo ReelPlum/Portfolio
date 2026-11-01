@@ -6,7 +6,8 @@ tags: [Rust, Languages]
 ---
 
 Building an interpreter is one of the best ways to learn how programming languages work.
+The project page is [[projects/interpreter]].
 
 > The first version only needs to add two numbers. Everything else is detail.
 
-More to come.
+A parser turns $a_1 + a_2$ into a syntax tree before the evaluator walks it.

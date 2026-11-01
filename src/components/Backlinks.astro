@@ -1,0 +1,13 @@
+---
+// "Referenced by": the posts and projects that link to this one with [[...]].
+import PostList from './PostList.astro';
+import { getBacklinks } from '../lib/queries.js';
+const { id } = Astro.props; // e.g. "blog/hello-world"
+const refs = await getBacklinks(id);
+---
+{refs.length > 0 && (
+  <section class="backlinks" aria-labelledby="backlinks-title">
+    <h2 id="backlinks-title">Referenced by</h2>
+    <PostList posts={refs} />
+  </section>
+)}

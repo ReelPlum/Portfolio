@@ -59,6 +59,25 @@ describe('embedFor: other', () => {
   });
 });
 
+describe('embedFor: PDFs', () => {
+  it('embeds site-relative and absolute PDFs', () => {
+    expect(embedFor('/files/notes.pdf')).toEqual({ provider: 'pdf', src: '/files/notes.pdf' });
+    expect(embedFor('https://x.test/a.PDF')).toEqual({ provider: 'pdf', src: 'https://x.test/a.PDF' });
+  });
+  it('keeps site-relative video paths relative', () => {
+    expect(embedFor('/media/clip.mp4')).toEqual({ provider: 'video', src: '/media/clip.mp4' });
+  });
+  it('ignores other site-relative paths and protocol-relative URLs', () => {
+    expect(embedFor('/about/')).toBeNull();
+    expect(embedFor('//evil.test/a.pdf')).toBeNull();
+  });
+  it('renders a figure with a fallback link', () => {
+    const html = embedHtml(embedFor('/files/Lecture%204.pdf'));
+    expect(html).toContain('data-pdf');
+    expect(html).toContain('<a href="/files/Lecture%204.pdf" target="_blank" rel="noopener">Lecture 4.pdf</a>');
+  });
+});
+
 describe('helpers', () => {
   it('parseStart', () => {
     expect(parseStart('90')).toBe(90);

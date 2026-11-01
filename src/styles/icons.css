@@ -1,16 +1,23 @@
-/* Micro-animations for icons. An icon animates when the button / link that contains it is
-   hovered, focused or pressed. The animation for each icon is picked in src/lib/icons.js. */
-.icon { display: inline-block; flex: none; vertical-align: middle; transform-origin: center; transform-box: fill-box; }
-.icon * { transform-box: fill-box; transform-origin: center; }
+/* Animated Material Symbols. Icons are the only thing on the site that moves: when the button or link
+   that contains one is hovered, focused or pressed, the icon fills in and plays a short motion.
+   The motion for each icon is chosen in src/lib/icons.js. */
+.icon { display: inline-block; flex: none; vertical-align: middle; transform-origin: center; overflow: visible; }
+.icon-fill { opacity: 0; transition: opacity 0.2s ease; }
+.icon-outline { transition: opacity 0.2s ease; }
+
+:where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon .icon-fill,
+.icon.is-animating .icon-fill { opacity: 1; }
+:where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon:has(.icon-fill) .icon-outline,
+.icon.is-animating:has(.icon-fill) .icon-outline { opacity: 0; }
 
 :where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim],
 .icon[data-anim].is-animating {
-  animation-duration: 0.6s;
-  animation-timing-function: var(--spring);
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
   animation-fill-mode: both;
 }
-:where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='spin'], .icon[data-anim='spin'].is-animating { animation-name: icon-spin; animation-timing-function: var(--ease); }
-:where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='spin-back'], .icon[data-anim='spin-back'].is-animating { animation-name: icon-spin-back; animation-timing-function: var(--ease); }
+:where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='spin'], .icon[data-anim='spin'].is-animating { animation-name: icon-spin; }
+:where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='spin-back'], .icon[data-anim='spin-back'].is-animating { animation-name: icon-spin-back; }
 :where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='swing'], .icon[data-anim='swing'].is-animating { animation-name: icon-swing; }
 :where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='pop'], .icon[data-anim='pop'].is-animating { animation-name: icon-pop; }
 :where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='nudge-x'], .icon[data-anim='nudge-x'].is-animating { animation-name: icon-nudge-x; }
@@ -20,20 +27,19 @@
 :where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='bounce'], .icon[data-anim='bounce'].is-animating { animation-name: icon-bounce; }
 :where(a, button, summary, label, [data-icon-trigger]):is(:hover, :focus-visible) .icon[data-anim='pulse'], .icon[data-anim='pulse'].is-animating { animation-name: icon-pulse; }
 
-/* "draw" strokes the icon in, used for confirmations such as the copy check mark */
-.icon[data-anim='draw'] * { stroke-dasharray: 30; stroke-dashoffset: 0; }
-.icon[data-anim='draw'].is-animating * { animation: icon-draw 0.45s var(--ease) both; }
+:where(a, button):active .icon { transform: scale(0.88); }
 
-:is(a, button):active > .icon { transform: scale(0.88); transition: transform 0.1s; }
-
-@keyframes icon-spin { to { transform: rotate(180deg); } }
-@keyframes icon-spin-back { to { transform: rotate(-360deg); } }
-@keyframes icon-swing { 0% { transform: rotate(0); } 30% { transform: rotate(-18deg); } 60% { transform: rotate(10deg); } 100% { transform: rotate(0); } }
-@keyframes icon-pop { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
+@keyframes icon-spin { from { transform: rotate(0); } to { transform: rotate(180deg); } }
+@keyframes icon-spin-back { from { transform: rotate(0); } to { transform: rotate(-360deg); } }
+@keyframes icon-swing { 0% { transform: rotate(0); } 30% { transform: rotate(-20deg); } 60% { transform: rotate(10deg); } 100% { transform: rotate(0); } }
+@keyframes icon-pop { 0% { transform: scale(1); } 40% { transform: scale(1.2); } 100% { transform: scale(1); } }
 @keyframes icon-nudge-x { 0%, 100% { transform: translateX(0); } 45% { transform: translateX(4px); } }
 @keyframes icon-nudge-x-back { 0%, 100% { transform: translateX(0); } 45% { transform: translateX(-4px); } }
 @keyframes icon-nudge-diag { 0%, 100% { transform: translate(0, 0); } 45% { transform: translate(3px, -3px); } }
 @keyframes icon-wiggle { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-12deg); } 40% { transform: rotate(10deg); } 60% { transform: rotate(-6deg); } 80% { transform: rotate(3deg); } }
 @keyframes icon-bounce { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-4px); } 65% { transform: translateY(1px); } }
-@keyframes icon-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
-@keyframes icon-draw { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
+@keyframes icon-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .icon { animation: none !important; transform: none !important; }
+}
