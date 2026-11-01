@@ -54,6 +54,26 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
     <script>
       // Only pages with an embedded PDF download the PDF renderer.
       if (document.querySelector('[data-pdf]')) import('../lib/pdf-viewer.js').then((m) => m.renderAllPdfs());
+      // Copy buttons on code blocks.
+      document.addEventListener('click', async (event) => {
+        const btn = event.target.closest?.('.code-copy');
+        if (!btn) return;
+        const code = btn.closest('.code-block')?.querySelector('pre code');
+        const status = btn.parentElement.querySelector('.code-status');
+        try {
+          await navigator.clipboard.writeText(code?.innerText ?? '');
+          btn.classList.add('is-copied');
+          btn.setAttribute('aria-label', 'Copied');
+          if (status) status.textContent = 'Copied to clipboard';
+          setTimeout(() => {
+            btn.classList.remove('is-copied');
+            btn.setAttribute('aria-label', 'Copy code');
+            if (status) status.textContent = '';
+          }, 2000);
+        } catch {
+          if (status) status.textContent = 'Copying is blocked in this browser';
+        }
+      });
     </script>
   </body>
 </html>

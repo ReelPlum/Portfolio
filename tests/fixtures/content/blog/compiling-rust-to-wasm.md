@@ -7,3 +7,5 @@ tags: [Rust, WebAssembly]
 
 If your program reads a file and prints to stdout, compile it with
 `cargo build --target wasm32-wasip1` and run it in the browser with a WASI shim.
+
+Macros from other posts don't leak in here: $\norm{x}$.

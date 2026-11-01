@@ -32,8 +32,11 @@
   --r-lg: 16px;
   --r-xl: 28px;
   --r-full: 999px;
-  --content: 1120px;
-  --reading: 720px;
+  /* Page width: wide enough to use a 1080p / 1440p screen; prose stays at a readable line length. */
+  --content: 1680px;
+  --reading: 780px;
+  --aside: 300px;
+  --gutter: clamp(16px, 4vw, 56px);
   color-scheme: light;
 }
 
@@ -77,6 +80,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 img, video, iframe { max-width: 100%; }
+/* Very large screens (4K and up at 100% scaling): scale the whole page so text isn't tiny. */
+@media (min-width: 2400px) { html { zoom: 1.25; } }
+@media (min-width: 3200px) { html { zoom: 1.5; } }
 img { height: auto; }
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }

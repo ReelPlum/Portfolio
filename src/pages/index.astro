@@ -17,8 +17,8 @@ const home = new URL(base, Astro.site).href;
 <Base jsonLd={[websiteLd(site, home), personLd(site, home)]}>
   <section class="hero">
     <p class="hero-eyebrow">Hi, I'm {site.author}.</p>
-    <h1 class="hero-title"-delay="0.05">{site.tagline}</h1>
-    <div class="hero-actions"-delay="0.1">
+    <h1 class="hero-title">{site.tagline}</h1>
+    <div class="hero-actions">
       <a class="btn" href={withBase('/projects/', base)}><Icon name="code" size={18} />See my work</a>
       <a class="btn btn-tonal" href={withBase('/contact/', base)}><Icon name="mail" size={18} />Get in touch</a>
     </div>

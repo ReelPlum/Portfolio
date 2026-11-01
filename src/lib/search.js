@@ -1,12 +1,13 @@
 // Search: keyword matching (Fuse.js) for instant, highlighted results, plus optional semantic
 // (vector) matching from embeddings computed at build time. Pure functions, no DOM, unit tested.
 import Fuse from 'fuse.js';
+import { stripPreambleBlocks } from './latex.js';
 
 /* ---------- text preparation ---------- */
 
 /* ---------- LaTeX ---------- */
 
-const MATH_RE = /\$\$([\s\S]+?)\$\$|(?<![\\$\w])\$(?!\s)((?:\\\$|[^$\n])+?)(?<!\s)\$(?![\w$])/g;
+export const MATH_RE = /\$\$([\s\S]+?)\$\$|(?<![\\$\w])\$(?!\s)((?:\\\$|[^$\n])+?)(?<!\s)\$(?![\w$])/g;
 
 /** Finds $inline$ and $$display$$ math. Returns [{ start, end (exclusive), tex, display }]. */
 export function findMath(text) {
@@ -48,7 +49,7 @@ export function renderParts(text, ranges = []) {
 export function markdownToText(md = '') {
   // Protect math first so markdown clean-up (e.g. "_" emphasis) can't mangle x_1 or a*b.
   const math = [];
-  const protectedMd = String(md).replace(MATH_RE, (m) => `\u0000${math.push(m) - 1}\u0000`);
+  const protectedMd = stripPreambleBlocks(md).replace(MATH_RE, (m) => `\u0000${math.push(m) - 1}\u0000`);
   return protectedMd
     .replace(/^---[\s\S]*?\n---\n/, '') // frontmatter
     .replace(/```[^\n]*\n([\s\S]*?)```/g, '$1') // keep code, drop fences
@@ -78,6 +79,31 @@ export function chunkText(text, size = 400) {
   }
   if (cur) chunks.push(cur);
   return chunks;
+}
+
+/**
+ * Splits plain text (from markdownToText) into paragraphs. Short blocks such as headings or one-line list
+ * items are joined to the paragraph that follows them, and very long paragraphs are split by sentence.
+ */
+export function paragraphs(text, { min = 80, max = 1200 } = {}) {
+  const blocks = text.split(/\n{2,}/).map((b) => b.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const out = [];
+  let pending = '';
+  for (const b of blocks) {
+    const cur = pending ? `${pending} ${b}` : b;
+    if (cur.length < min) {
+      pending = cur;
+      continue;
+    }
+    pending = '';
+    if (cur.length > max) out.push(...chunkText(cur, max));
+    else out.push(cur);
+  }
+  if (pending) {
+    if (out.length && out[out.length - 1].length + pending.length < max) out[out.length - 1] += ` ${pending}`;
+    else out.push(pending);
+  }
+  return out;
 }
 
 /* ---------- keyword search ---------- */
@@ -210,6 +236,21 @@ export function cosine(a, b) {
  * A tiny deterministic "embedding" (hashed bag of words). Used by the tests and as an offline
  * fallback when the real model can't be downloaded at build time. Not semantic, but the same plumbing.
  */
+// Embedding models the site knows how to use, with the task prefixes each one expects.
+// nomic-embed-text was trained with "search_query: " / "search_document: " in front of the text.
+export const EMBED_MODELS = {
+  'nomic-ai/nomic-embed-text-v1.5': { query: 'search_query: ', document: 'search_document: ' },
+  'Xenova/all-MiniLM-L6-v2': { query: '', document: '' },
+};
+export const DEFAULT_MODEL = 'nomic-ai/nomic-embed-text-v1.5';
+
+/** The text to embed for a model: the query or document prefix it expects, then the text. */
+export function prefixed(model, kind, text) {
+  const spec = EMBED_MODELS[model];
+  if (!spec) throw new Error(`Unknown embedding model "${model}". Known: ${Object.keys(EMBED_MODELS).join(', ')}`);
+  return spec[kind] + text;
+}
+
 export const HASH_MODEL = 'hash-bow-256';
 export function hashEmbed(text, dim = 256) {
   const v = new Float32Array(dim);
@@ -223,13 +264,24 @@ export function hashEmbed(text, dim = 256) {
 }
 
 /** Best chunk per doc: Map(docId -> { score, chunk }) */
+/**
+ * Best semantic score per document. Each document has one whole-document vector (kind "d") and one
+ * vector per paragraph (kind "p"). The document's score is the best of all of them, and the passage
+ * shown is its best-matching paragraph.
+ */
 export function semanticScores(queryVec, chunks) {
   const best = new Map();
   for (const c of chunks) {
     const s = cosine(queryVec, c.vec);
-    const cur = best.get(c.doc);
-    if (!cur || s > cur.score) best.set(c.doc, { score: s, chunk: c.text });
+    let cur = best.get(c.doc);
+    if (!cur) best.set(c.doc, (cur = { score: -Infinity, chunk: null, chunkScore: -Infinity }));
+    if (s > cur.score) cur.score = s;
+    if (c.kind !== 'd' && s > cur.chunkScore) {
+      cur.chunkScore = s;
+      cur.chunk = c.text;
+    }
   }
+  for (const v of best.values()) delete v.chunkScore;
   return best;
 }
 
@@ -279,7 +331,7 @@ export function matchedFields(result, query) {
     out.push({ key: 'body', label: 'Content', ...snippet(doc.body, bodyRanges), matched: true });
   } else if (result.passage) {
     const r = termRanges(result.passage, query);
-    out.push({ key: 'passage', label: 'Related passage', ...snippet(result.passage, r, 140), matched: true });
+    out.push({ key: 'passage', label: 'Matching paragraph', ...snippet(result.passage, r, 140), matched: true });
   }
   return out;
 }

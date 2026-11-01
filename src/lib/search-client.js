@@ -3,9 +3,18 @@
 import katex from 'katex';
 import {
   createKeywordIndex, keywordSearch, mergeResults, matchedFields, renderParts,
-  semanticScores, dequantize, hashEmbed, HASH_MODEL,
+  semanticScores, dequantize, hashEmbed, HASH_MODEL, prefixed,
 } from './search.js';
 import { formatDate } from './content.js';
+import { macrosFrom } from './latex.js';
+
+// Each post's own LaTeX macros (from its ```preamble block), built once per post.
+const macroCache = new Map();
+const macrosFor = (doc) => {
+  if (!doc?.preamble) return undefined;
+  if (!macroCache.has(doc.id)) macroCache.set(doc.id, macrosFrom(doc.preamble));
+  return macroCache.get(doc.id);
+};
 
 const base = import.meta.env.BASE_URL;
 let indexPromise;
@@ -20,7 +29,7 @@ export function loadIndex() {
 function loadVectors() {
   vectorsPromise ??= fetch(`${base}search-vectors.json`)
     .then((r) => (r.ok ? r.json() : null))
-    .then((data) => data && { ...data, chunks: data.chunks.map((c) => ({ doc: c.doc, text: c.text, vec: dequantize(c.v) })) })
+    .then((data) => data && { ...data, chunks: data.chunks.map((c) => ({ doc: c.doc, kind: c.k, text: c.text, vec: dequantize(c.v) })) })
     .catch(() => null);
   return vectorsPromise;
 }
@@ -30,11 +39,11 @@ export function loadEmbedder() {
   embedderPromise ??= loadVectors().then(async (vectors) => {
     if (!vectors) return null;
     if (vectors.model === HASH_MODEL) return { vectors, embed: async (t) => hashEmbed(t, vectors.dim) };
-    // The model and runtime are ~30 MB on the first search (cached afterwards); respect data saver.
+    // The model and runtime are ~140 MB on the first search (cached afterwards); respect data saver.
     if (navigator.connection?.saveData) return null;
     const { pipeline } = await import('@huggingface/transformers');
     const extractor = await pipeline('feature-extraction', vectors.model, { dtype: 'q8' });
-    return { vectors, embed: async (t) => (await extractor(t, { pooling: 'mean', normalize: true })).data };
+    return { vectors, embed: async (t) => (await extractor(prefixed(vectors.model, 'query', t), { pooling: 'mean', normalize: true })).data };
   }).catch((e) => {
     console.warn('Semantic search unavailable:', e);
     return null;
@@ -64,13 +73,13 @@ const el = (tag, cls, text) => {
 };
 
 /** Text with <mark>ed matches and LaTeX rendered by KaTeX. */
-export function renderRich(text, ranges) {
+export function renderRich(text, ranges, macros) {
   const frag = document.createDocumentFragment();
   for (const part of renderParts(text, ranges)) {
     let node;
     if (part.type === 'math') {
       node = el('span', `search-math${part.display ? ' search-math-display' : ''}`);
-      node.innerHTML = katex.renderToString(part.tex, { throwOnError: false, displayMode: false });
+      node.innerHTML = katex.renderToString(part.tex, { throwOnError: false, displayMode: false, macros });
     } else node = document.createTextNode(part.text);
     if (part.match) {
       const mark = el('mark');
@@ -105,7 +114,8 @@ export function renderResults(list, results, query, { limit = Infinity, icons = 
     const fields = matchedFields(r, query);
     const [title, ...rest] = fields;
     const h = el('h3', 'search-title');
-    h.append(renderRich(title.text, title.ranges));
+    const macros = macrosFor(r.doc);
+    h.append(renderRich(title.text, title.ranges, macros));
     a.append(h);
     const dl = el('dl', 'search-fields');
     for (const f of rest) {
@@ -115,10 +125,10 @@ export function renderResults(list, results, query, { limit = Infinity, icons = 
       if (f.key === 'tags') {
         for (const t of f.items) {
           const tag = el('span', 'tag');
-          tag.append(renderRich(t.text, t.ranges));
+          tag.append(renderRich(t.text, t.ranges, macros));
           dd.append(tag);
         }
-      } else dd.append(renderRich(f.text, f.ranges));
+      } else dd.append(renderRich(f.text, f.ranges, macros));
       dl.append(dt, dd);
     }
     if (dl.children.length) a.append(dl);

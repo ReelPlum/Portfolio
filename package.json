@@ -28,6 +28,7 @@
     "pdfjs-dist": "^6.5.438",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",
+    "shiki": "^4.5.0",
     "unist-util-visit": "^5.2.0"
   },
   "devDependencies": {
