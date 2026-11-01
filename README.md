@@ -8,7 +8,7 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 
 - New `.md` files become blog posts, project pages and standalone pages
 - Google / Material Design 3 style: simple, flat colours, no gradients, nothing moves except icons
-- Light and dark mode that follows the system setting, with a toggle that remembers your choice
+- Light and dark mode that follows the system setting (no toggle)
 - Animated [Material Symbols](https://fonts.google.com/icons) on every button and link: they fill in and move on hover
 - Search across projects and posts with every matching field shown and the matching text highlighted,
   combining keyword matching with vector (semantic) search

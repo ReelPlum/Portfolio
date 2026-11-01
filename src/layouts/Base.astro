@@ -16,7 +16,7 @@ const base = import.meta.env.BASE_URL;
 const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base) ? base.replace(/\/$/, '') + image : image, Astro.site) : null;
 ---
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -42,16 +42,7 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
     {jsonLd.map((d) => <script type="application/ld+json" set:html={ldJson(d)} />)}
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)" />
-    <script is:inline>
-      // Runs before paint so the page never flashes the wrong theme. Logic mirrors src/lib/theme.js.
-      (function () {
-        var d = document.documentElement, mq = matchMedia('(prefers-color-scheme: dark)');
-        function stored() { try { return localStorage.getItem('theme'); } catch (e) { return null; } }
-        function apply() { var s = stored(); d.dataset.theme = s === 'light' || s === 'dark' ? s : (mq.matches ? 'dark' : 'light'); }
-        apply();
-        mq.addEventListener('change', function () { if (!stored()) { apply(); document.querySelectorAll('[data-theme-toggle]').forEach(function (b) { b.dispatchEvent(new Event('theme-sync')); }); } });
-      })();
-    </script>
+    <meta name="color-scheme" content="light dark" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

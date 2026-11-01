@@ -53,52 +53,27 @@ test.describe('blog content', () => {
   });
 });
 
-test.describe('theme', () => {
-  test('follows the system setting', async ({ browser }) => {
-    const ctx = await browser.newContext({ colorScheme: 'dark' });
-    const page = await ctx.newPage();
-    await page.goto(test.info().project.use.baseURL);
-    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await ctx.close();
-  });
+test.describe('theme follows the system', () => {
+  for (const scheme of ['light', 'dark']) {
+    test(`uses ${scheme} colours when the system is ${scheme}`, async ({ page }) => {
+      await page.emulateMedia({ colorScheme: scheme });
+      await page.goto('');
+      const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+      expect(bg).toBe(scheme === 'dark' ? 'rgb(19, 19, 20)' : 'rgb(255, 255, 255)');
+    });
+  }
 
-  test('toggle switches theme, changes colours and remembers the choice', async ({ page }) => {
+  test('switches live when the system setting changes', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });
     await page.goto('');
-    const html = page.locator('html');
-    await expect(html).toHaveAttribute('data-theme', 'light');
-    const bgLight = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    const toggle = page.locator('[data-theme-toggle]:visible').first();
-    await expect(toggle).toHaveAttribute('aria-label', 'Switch to dark mode');
-    await toggle.click();
-    await expect(html).toHaveAttribute('data-theme', 'dark');
-    await expect(toggle).toHaveAttribute('aria-label', 'Switch to light mode');
-    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).not.toBe(bgLight);
-    await page.reload();
-    await expect(html).toHaveAttribute('data-theme', 'dark');
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe('rgb(19, 19, 20)');
   });
 
-  test('the theme is applied before first paint (no flash)', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('theme', 'dark'));
-    await page.emulateMedia({ colorScheme: 'light' });
-    // Grab the attribute as soon as the body exists, before any module script runs.
-    await page.addInitScript(() => {
-      document.addEventListener('readystatechange', () => { window.__firstTheme ??= document.documentElement.dataset.theme; }, { once: true });
-    });
+  test('there is no theme toggle and no avatar next to the name', async ({ page }) => {
     await page.goto('');
-    expect(await page.evaluate(() => window.__firstTheme)).toBe('dark');
-  });
-
-  // Regression: clicking the toggle threw "blocked" because the page read window.localStorage outside a try.
-  test('works when localStorage is blocked', async ({ page }) => {
-    const errors = await trackErrors(page);
-    await page.addInitScript(() => {
-      Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } });
-    });
-    await page.goto('');
-    await page.locator('[data-theme-toggle]:visible').first().click();
-    await expect(page.locator('html')).toHaveAttribute('data-theme', /dark|light/);
-    errors.assertNone();
+    await expect(page.getByRole('button', { name: /dark mode|light mode/i })).toHaveCount(0);
+    await expect(page.locator('.brand')).toHaveText('Frederik');
   });
 });
 
