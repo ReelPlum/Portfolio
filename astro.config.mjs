@@ -10,6 +10,7 @@ import { remarkReferences } from './src/lib/remark-references.js';
 import { rehypeBaseUrls } from './src/lib/rehype-base-urls.js';
 import { remarkLatexPreamble, rehypeKatexPerPost } from './src/lib/remark-latex-preamble.js';
 import { remarkCode } from './src/lib/remark-code.js';
+import { rehypeDownloadLinks } from './src/lib/rehype-download-links.js';
 import { rehypeExternalLinks } from './src/lib/rehype-external-links.js';
 import { buildTargets } from './src/lib/references.js';
 import { searchEmbeddings } from './src/lib/search-embeddings.js';
@@ -42,8 +43,8 @@ export default defineConfig({
   integrations: [mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings()],
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkLatexPreamble, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base }], [remarkReferences, { targets, base }]],
-      rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }]],
+      remarkPlugins: [remarkLatexPreamble, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
+      rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }], [rehypeDownloadLinks, { publicDirs, base }]],
     }),
     // Code blocks are highlighted by src/lib/remark-code.js (adds the language label and copy button).
     syntaxHighlight: false,

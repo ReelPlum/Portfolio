@@ -1,7 +1,7 @@
 ---
 title: Everything this site can do
 date: 2026-10-30
-description: "One post that uses every feature: images, videos, PDFs, maths with macros, code, references and links."
+description: "One post that uses every feature: images, videos, PDFs, 3D models, WebAssembly apps, maths with macros, code, file views, downloads, references and links."
 tags: [Meta]
 ---
 
@@ -36,6 +36,21 @@ put the file in `public/files/`:
 
 /files/sample-notes.pdf
 
+## 3D models
+
+A `.glb` or `.gltf` file on its own line becomes a viewer you can rotate and zoom. Put the file in
+`public/models/`:
+
+/models/crystal.glb
+
+## Rendered with Rust and wgpu
+
+A Rust program that draws with [wgpu](https://wgpu.rs), built for the web with wasm-bindgen, runs in a
+canvas on the page. Put the build in `public/wasm/<name>/` and write the path to its `.js` file on its own
+line. It starts when you press Run, and shows a placeholder like this one until the files are there:
+
+/wasm/renderer/renderer.js
+
 ## Maths
 
 Inline maths goes between single dollar signs, like $e^{i\pi} + 1 = 0$, and display maths between double
@@ -65,6 +80,22 @@ A path to a source file on its own line includes the file (here, only the token 
 /code/interpreter/lexer.rs#L3-L14
 
 There's more on this in [[code-blocks|Showing code on this site]].
+
+## Files
+
+Text files show their contents, and CSV files become a table. Put them anywhere in `public/` and write
+the path on its own line:
+
+/files/interpreter-notes.txt
+
+/files/benchmarks.csv
+
+## Downloads
+
+A link to a file gets a download button with its size when you give it the title `"download"`, like
+`[the notes](/files/sample-notes.pdf "download")`. Archives such as `.zip` files always download. Both
+are below: [the lexer source](/files/interpreter-lexer.zip) and
+[the sample notes](/files/sample-notes.pdf "download").
 
 ## Links between posts and projects
 

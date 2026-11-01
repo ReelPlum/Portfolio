@@ -94,3 +94,28 @@ describe('remarkCode', () => {
     expect(value).not.toContain('fn main');
   });
 });
+
+describe('CSV files as tables', async () => {
+  const { parseCsv, tableBlockHtml } = await import('../../src/lib/code-blocks.js');
+  it('parses quoted fields, escaped quotes, commas and newlines inside quotes', () => {
+    expect(parseCsv('a,b\n"x, y","say ""hi"""\n"multi\nline",2\n')).toEqual([['a', 'b'], ['x, y', 'say "hi"'], ['multi\nline', '2']]);
+    expect(parseCsv('a\tb\n1\t2', '\t')).toEqual([['a', 'b'], ['1', '2']]);
+    expect(parseCsv('a,b\r\n\r\n1,2\r\n')).toEqual([['a', 'b'], ['1', '2']]);
+  });
+  it('renders a header, escaped cells and right-aligned number columns', () => {
+    const html = tableBlockHtml('Name,Score\n<b>Ada</b>,97\nLinus,91', { title: 'scores.csv', href: '/files/scores.csv' });
+    expect(html).toContain('<th>Name</th><th class="num">Score</th>');
+    expect(html).toContain('<td>&lt;b&gt;Ada&lt;/b&gt;</td><td class="num">97</td>');
+    expect(html).toContain('2 rows');
+    expect(html).toContain('download');
+  });
+  it('3D models and wasm apps are not shown as code', () => {
+    expect(parseInclude('/models/a.glb')).toBeNull();
+    expect(parseInclude('/models/a.gltf')).toBeNull();
+    expect(parseInclude('/wasm/app/app.js')).toBeNull();
+    expect(parseInclude('/code/app.js')).toMatchObject({ lang: 'javascript' });
+    expect(parseInclude('/files/a.txt')).toMatchObject({ lang: 'text' });
+    expect(parseInclude('/files/a.csv')).toMatchObject({ lang: 'csv' });
+    expect(parseInclude('/files/server.log')).toMatchObject({ lang: 'log' });
+  });
+});

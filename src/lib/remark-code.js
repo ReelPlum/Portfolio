@@ -1,7 +1,8 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { visit } from 'unist-util-visit';
-import { codeBlockHtml, parseInclude, sliceLines, metaTitle } from './code-blocks.js';
+import { codeBlockHtml, tableBlockHtml, parseInclude, sliceLines, metaTitle } from './code-blocks.js';
+import { iconSvg } from './icons.js';
 import { withBase } from './content.js';
 
 const SKIP_LANGS = new Set(['math', 'preamble', 'latex-preamble']);
@@ -38,7 +39,13 @@ export function remarkCode({ publicDirs = ['public'], base = '/' } = {}) {
       const title = inc.path.split('/').pop() + (inc.from ? ` (lines ${inc.from}–${inc.to})` : '');
       const replacement = { type: 'html', value: '' };
       parent.children[index] = replacement;
-      jobs.push(codeBlockHtml(value, { lang: inc.lang, title, href: withBase(inc.path, base) }).then((h) => { replacement.value = h; }));
+      const href = withBase(inc.path, base);
+      // CSV / TSV files are shown as a table; everything else as highlighted text.
+      if (inc.lang === 'csv' || inc.lang === 'tsv') {
+        replacement.value = tableBlockHtml(value, { lang: inc.lang, title, href, icons: { download: iconSvg('download', { size: 18 }) } });
+        return;
+      }
+      jobs.push(codeBlockHtml(value, { lang: inc.lang, title, href }).then((h) => { replacement.value = h; }));
     });
     visit(tree, 'code', (node, index, parent) => {
       if (!parent || SKIP_LANGS.has((node.lang || '').toLowerCase())) return;

@@ -54,6 +54,9 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
     <script>
       // Only pages with an embedded PDF download the PDF renderer.
       if (document.querySelector('[data-pdf]')) import('../lib/pdf-viewer.js').then((m) => m.renderAllPdfs());
+      // 3D models and WebAssembly canvas apps load their code only on pages that have one.
+      if (document.querySelector('[data-model]')) import('@google/model-viewer');
+      if (document.querySelector('[data-canvas]')) import('../lib/canvas-embed.js').then((m) => m.setupCanvases());
       // Copy buttons on code blocks.
       document.addEventListener('click', async (event) => {
         const btn = event.target.closest?.('.code-copy');

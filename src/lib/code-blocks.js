@@ -51,12 +51,14 @@ export function languageForFile(path) {
 
 const INCLUDE_RE = /^(\/(?!\/)[^\s#?]+\.[A-Za-z0-9+_-]+)(?:#L(\d+)(?:-L?(\d+))?)?$/;
 // Paths that are not source code even if a grammar exists for them (media, documents).
-const NOT_CODE = /\.(pdf|png|jpe?g|gif|webp|avif|svg|ico|mp4|webm|mov|ogv|mp3|wav|wasm)$/i;
+const NOT_CODE = /\.(pdf|png|jpe?g|gif|webp|avif|svg|ico|mp4|webm|mov|ogv|mp3|wav|wasm|glb|gltf)$/i;
+// wasm-bindgen glue under /wasm/ is a runnable app (a canvas embed), not code to show.
+const APP_JS = /^\/wasm\/[^/]+\/.+\.js$/i;
 
 /** Parses "/code/a.rs#L3-L9" into { path, lang, from, to }, or null if it isn't a source file path. */
 export function parseInclude(text) {
   const m = INCLUDE_RE.exec(String(text).trim());
-  if (!m || NOT_CODE.test(m[1])) return null;
+  if (!m || NOT_CODE.test(m[1]) || APP_JS.test(m[1])) return null;
   const lang = languageForFile(m[1]);
   if (!lang) return null;
   const from = m[2] ? Number(m[2]) : null;
@@ -106,4 +108,41 @@ export async function codeBlockHtml(code, { lang, title, href } = {}) {
   return `<figure class="code-block" data-language="${esc(id)}"><figcaption class="code-head"><span class="code-lang">${esc(label)}</span>${name}`
     + `<button type="button" class="icon-btn code-copy" aria-label="Copy code" title="Copy">${iconSvg('content_copy', { size: 18 })}${iconSvg('check', { size: 18 })}</button>`
     + `<span class="visually-hidden code-status" role="status"></span></figcaption>${pre}</figure>`;
+}
+
+/** Parses CSV (or TSV with sep "\t"): quoted fields, "" escapes and newlines inside quotes. */
+export function parseCsv(text, sep = ',') {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let quoted = false;
+  const src = text.replace(/\r\n?/g, '\n');
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (quoted) {
+      if (c === '"' && src[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else field += c;
+    } else if (c === '"' && field === '') quoted = true;
+    else if (c === sep) { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else field += c;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows.filter((r) => r.some((f) => f.trim() !== ''));
+}
+
+const NUMERIC = /^-?[\d.,]+%?$/;
+
+/** A CSV / TSV file shown as a table: the first row is the header; number columns are right-aligned. */
+export function tableBlockHtml(text, { lang = 'csv', title, href, icons = {} } = {}) {
+  const [head = [], ...body] = parseCsv(text, lang === 'tsv' ? '\t' : ',');
+  const numeric = head.map((_, i) => body.length > 0 && body.every((r) => !r[i] || NUMERIC.test(r[i].trim())));
+  const cell = (tag, v, i) => `<${tag}${numeric[i] ? ' class="num"' : ''}>${esc(v ?? '')}</${tag}>`;
+  const name = title ? (href ? `<a class="code-title" href="${esc(href)}">${esc(title)}</a>` : `<span class="code-title">${esc(title)}</span>`) : '';
+  const rows = `${body.length} row${body.length === 1 ? '' : 's'}`;
+  return `<figure class="code-block table-block" data-language="${esc(lang)}"><figcaption class="code-head"><span class="code-lang">${lang.toUpperCase()}</span>${name}<span class="table-rows">${rows}</span>`
+    + `${href ? `<a class="icon-btn" href="${esc(href)}" download aria-label="Download ${esc(title || 'file')}" title="Download">${icons.download || ''}</a>` : ''}</figcaption>`
+    + `<div class="table-scroll" tabindex="0"><table><thead><tr>${head.map((h, i) => cell('th', h, i)).join('')}</tr></thead>`
+    + `<tbody>${body.map((r) => `<tr>${head.map((_, i) => cell('td', r[i], i)).join('')}</tr>`).join('')}</tbody></table></div></figure>`;
 }
