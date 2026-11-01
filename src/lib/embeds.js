@@ -5,6 +5,8 @@ const YT_HOSTS = new Set(['youtube.com', 'www.youtube.com', 'm.youtube.com', 'mu
 const VIMEO_HOSTS = new Set(['vimeo.com', 'www.vimeo.com', 'player.vimeo.com']);
 const VIDEO_EXT = /\.(mp4|webm|mov|ogv)$/i;
 const YT_ID = /^[A-Za-z0-9_-]{11}$/;
+export const MODEL_EXT = /\.(glb|gltf)$/i;
+export const CANVAS_RE = /^\/wasm\/[^/]+\/.+\.js$/i;
 
 const LOCAL = 'http://local.invalid';
 function parse(url) {
@@ -63,13 +65,36 @@ export function embedFor(url) {
 
   if (VIDEO_EXT.test(u.pathname)) return { provider: 'video', src: hrefOf(u) };
   if (/\.pdf$/i.test(u.pathname)) return { provider: 'pdf', src: hrefOf(u) };
+  if (MODEL_EXT.test(u.pathname)) return { provider: 'model', src: hrefOf(u).split('#')[0] };
+  // A WebAssembly app built with wasm-bindgen (e.g. a Rust wgpu renderer): /wasm/<name>/<name>.js
+  if (u.origin === LOCAL && CANVAS_RE.test(u.pathname)) {
+    const height = Number(u.searchParams.get('height')) || 480;
+    return { provider: 'canvas', src: u.pathname, entry: u.searchParams.get('entry') || 'start', height: Math.min(Math.max(height, 160), 1600) };
+  }
   return null;
 }
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-export function embedHtml(embed, title = '') {
+const fileName = (src) => decodeURIComponent(src.split('/').pop());
+
+export function embedHtml(embed, title = '', { icons = {}, missing = false } = {}) {
   if (!embed) return '';
+  if (embed.provider === 'model') {
+    // <model-viewer> (loaded only on pages that have a model) lets you drag to rotate and scroll to zoom.
+    const name = title || fileName(embed.src);
+    return `<figure class="embed embed-model" data-model><model-viewer src="${esc(embed.src)}" alt="${esc(`3D model: ${name}`)}" camera-controls touch-action="pan-y" interaction-prompt="none" shadow-intensity="0.6" environment-image="neutral" exposure="1"><div slot="progress-bar"></div></model-viewer>`
+      + `<figcaption><span>${esc(name)}</span><span class="embed-hint">Drag to rotate, scroll or pinch to zoom</span><a href="${esc(embed.src)}" download>${icons.download || ''}Download</a></figcaption></figure>`;
+  }
+  if (embed.provider === 'canvas') {
+    const name = title || fileName(embed.src).replace(/\.js$/i, '');
+    if (missing) {
+      return `<figure class="embed embed-canvas embed-canvas-soon" style="--canvas-height:${embed.height}px"><div class="playground-soon">${icons.soon || ''}<h3>${esc(name)} is coming soon</h3><p>It will run here once its build is added to <code>public${esc((embed.publicPath || embed.src).replace(/[^/]+$/, ''))}</code>.</p></div></figure>`;
+    }
+    return `<figure class="embed embed-canvas" data-canvas data-module="${esc(embed.src)}" data-entry="${esc(embed.entry)}" style="--canvas-height:${embed.height}px">`
+      + `<canvas aria-label="${esc(name)}"></canvas><div class="canvas-overlay"><button type="button" class="btn canvas-run">${icons.run || ''}Run ${esc(name)}</button><p class="canvas-status" role="status"></p></div>`
+      + `<figcaption><span>${esc(name)}</span><span class="embed-hint">Runs in your browser with WebGPU (or WebGL 2)</span></figcaption></figure>`;
+  }
   if (embed.provider === 'pdf') {
     // Rendered page by page with pdf.js (src/lib/pdf-viewer.js); the link is the no-JS fallback.
     const name = title || decodeURIComponent(embed.src.split('/').pop());

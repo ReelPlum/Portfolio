@@ -100,3 +100,61 @@ describe('helpers', () => {
     expect(embedHtml(embedFor('https://example.com/a.webm'))).toMatch(/<video src="https:\/\/example.com\/a.webm" controls/);
   });
 });
+
+describe('embedFor: 3D models and canvas apps', () => {
+  it('a .glb or .gltf path becomes a model viewer', () => {
+    expect(embedFor('/models/crystal.glb')).toEqual({ provider: 'model', src: '/models/crystal.glb' });
+    expect(embedFor('https://example.com/a/scene.gltf')).toEqual({ provider: 'model', src: 'https://example.com/a/scene.gltf' });
+    const html = embedHtml(embedFor('/models/crystal.glb'));
+    expect(html).toContain('<model-viewer src="/models/crystal.glb"');
+    expect(html).toContain('camera-controls');
+    expect(html).toContain('alt="3D model: crystal.glb"');
+    expect(html).toContain('download');
+  });
+  it('a wasm-bindgen module under /wasm/ becomes a canvas app, with options', () => {
+    expect(embedFor('/wasm/renderer/renderer.js')).toEqual({ provider: 'canvas', src: '/wasm/renderer/renderer.js', entry: 'start', height: 480 });
+    expect(embedFor('/wasm/renderer/renderer.js?entry=run&height=300')).toMatchObject({ entry: 'run', height: 300 });
+    expect(embedFor('/wasm/renderer/renderer.js?height=99999').height).toBe(1600);
+    expect(embedFor('https://example.com/wasm/x/x.js')).toBeNull(); // only this site's own builds
+    expect(embedFor('/code/x.js')).toBeNull();
+  });
+  it('shows a placeholder until the build exists', () => {
+    const e = embedFor('/wasm/renderer/renderer.js');
+    expect(embedHtml(e, '', { missing: true })).toContain('renderer is coming soon');
+    expect(embedHtml(e, '', { missing: true })).not.toContain('data-canvas');
+    expect(embedHtml(e)).toContain('data-module="/wasm/renderer/renderer.js" data-entry="start"');
+  });
+});
+
+describe('download links', async () => {
+  const { formatSize, rehypeDownloadLinks } = await import('../../src/lib/rehype-download-links.js');
+  const link = (href, title) => ({ type: 'root', children: [{ type: 'element', tagName: 'a', properties: { href, ...(title ? { title } : {}) }, children: [{ type: 'text', value: 'x' }] }] });
+  const run = (tree) => rehypeDownloadLinks({ publicDirs: ['tests/fixtures/public'], base: '/Portfolio/' })(tree, { path: 'post.md' });
+  it('formats file sizes', () => {
+    expect(formatSize(500)).toBe('500 B');
+    expect(formatSize(1536)).toBe('1.5 KB');
+    expect(formatSize(5 * 1024 * 1024)).toBe('5.0 MB');
+    expect(formatSize(300 * 1024 * 1024)).toBe('300 MB');
+  });
+  it('archives download automatically, with an icon and the size', () => {
+    const t = link('/Portfolio/files/tiny-calc.zip');
+    run(t);
+    const a = t.children[0];
+    expect(a.properties.download).toBe('tiny-calc.zip');
+    expect(a.properties.className).toContain('download-link');
+    expect(a.children[0].value).toContain('data-icon="download"');
+    expect(a.children.at(-1).children[0].value).toMatch(/^\d+(\.\d)? (B|KB)$/);
+  });
+  it('any file downloads when the link title is "download"; other links are untouched', () => {
+    const t = link('/Portfolio/files/scores.csv', 'download');
+    run(t);
+    expect(t.children[0].properties.download).toBe('scores.csv');
+    expect(t.children[0].properties.title).toBeUndefined();
+    const plain = link('/Portfolio/files/scores.csv');
+    run(plain);
+    expect(plain.children[0].properties.download).toBeUndefined();
+  });
+  it('a missing download fails the build', () => {
+    expect(() => run(link('/Portfolio/files/nope.zip', 'download'))).toThrow('Download not found: /files/nope.zip. Put the file in public/files/nope.zip (in post.md)');
+  });
+});

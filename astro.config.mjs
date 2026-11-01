@@ -3,12 +3,15 @@ import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import { unified } from '@astrojs/markdown-remark';
 import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import { cpSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { remarkEmbeds } from './src/lib/remark-embeds.js';
 import { remarkReferences } from './src/lib/remark-references.js';
 import { rehypeBaseUrls } from './src/lib/rehype-base-urls.js';
+import { remarkLatexPreamble, rehypeKatexPerPost } from './src/lib/remark-latex-preamble.js';
+import { remarkCode } from './src/lib/remark-code.js';
+import { rehypeDownloadLinks } from './src/lib/rehype-download-links.js';
+import { rehypeExternalLinks } from './src/lib/rehype-external-links.js';
 import { buildTargets } from './src/lib/references.js';
 import { searchEmbeddings } from './src/lib/search-embeddings.js';
 import site from './site.config.js';
@@ -26,10 +29,13 @@ const copyFixturePublic = {
 
 // BASE_PATH lets the GitHub Pages workflow override the base (it reads it from the Pages settings).
 const base = process.env.BASE_PATH || site.base;
+// Where code files included with a path on its own line (e.g. /code/main.rs) are read from.
+const publicDirs = [fileURLToPath(new URL('./public/', import.meta.url)), ...(fixturePublic ? [fixturePublic] : [])];
+const siteUrl = process.env.SITE_URL || site.url;
 const targets = buildTargets(fileURLToPath(new URL(`./${contentDir}/`, import.meta.url)));
 
 export default defineConfig({
-  site: process.env.SITE_URL || site.url,
+  site: siteUrl,
   base,
   trailingSlash: 'ignore',
   // transformers.js and pdf.js are big but only load when someone searches / a page has a PDF.
@@ -37,9 +43,10 @@ export default defineConfig({
   integrations: [mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings()],
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkMath, [remarkEmbeds, { base }], [remarkReferences, { targets, base }]],
-      rehypePlugins: [[rehypeKatex, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }]],
+      remarkPlugins: [remarkLatexPreamble, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
+      rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }], [rehypeDownloadLinks, { publicDirs, base }]],
     }),
-    shikiConfig: { themes: { light: 'github-light', dark: 'github-dark' } },
+    // Code blocks are highlighted by src/lib/remark-code.js (adds the language label and copy button).
+    syntaxHighlight: false,
   },
 });

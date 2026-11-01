@@ -12,7 +12,15 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - Animated [Material Symbols](https://fonts.google.com/icons) on every button and link: they fill in and move on hover
 - Search across projects and posts with every matching field shown and the matching text highlighted,
   combining keyword matching with vector (semantic) search
-- LaTeX maths ($…$ and $$…$$) rendered with [KaTeX](https://katex.org), on pages and in search results
+- LaTeX maths ($…$ and $$…$$) rendered with [KaTeX](https://katex.org), on pages and in search results, with
+  per-post macros (`\newcommand`) from a preamble block
+- Highlighted code blocks in any language with a language label, file name and copy button, and code included
+  straight from a source file (`/code/main.rs#L10-L20` on its own line)
+- 3D models (`.glb` / `.gltf`) you can rotate, WebAssembly canvas apps such as Rust + wgpu renderers, and text
+  and CSV files shown inline
+- Download links with an icon and the file size
+- Links to other sites open in a new tab
+- Wide layout for big screens: posts get a side column with the details and "On this page"
 - Links between posts and projects with `[[slug]]`, and a "Referenced by" list on each page
 - PDFs (for example Goodnotes exports) shown inline, page by page
 - Live, in-browser project demos from WebAssembly (made for a Rust interpreter that prints to stdout)
@@ -64,6 +72,116 @@ $$
 \sum_{k=1}^{n} k = \frac{n(n+1)}{2}
 $$
 ```
+
+To use your own commands in a post, put a `preamble` block at the top. It isn't shown, and every formula in the
+post (and in search results for it) can use what it defines:
+
+````markdown
+```preamble
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+```
+
+For every $x \in \R^n$, $\norm{x} \ge 0$.
+````
+
+KaTeX supports `\newcommand`, `\renewcommand`, `\def` and most of what `amsmath` and `amssymb` provide (including
+`\boxed{...}` and `\fbox{text}`), but it can't load packages, so `\usepackage` lines are skipped with a warning
+in the build. Macros never leak from one post into another.
+
+### Code
+
+Fenced code blocks are highlighted for every language [Shiki](https://shiki.style/languages) knows and show the
+language name and a copy button. Add `title="..."` to show a file name:
+
+````markdown
+```rust title="src/main.rs"
+fn main() {
+    println!("Hello");
+}
+```
+````
+
+To show code from a file, put the file in `public/code/` and write its path on a line by itself. Add `#L10-L20` to
+show only those lines. The language comes from the file extension, and the file name links to the raw file:
+
+```markdown
+/code/interpreter/lexer.rs
+/code/interpreter/lexer.rs#L26-L46
+```
+
+A missing file or a line range past the end of the file fails the build.
+
+### Text and CSV files
+
+Any text file (`.txt`, `.log`, `.json`, `.toml`, `.md` and so on) with its path on a line by itself is shown with its
+contents, like a code file. A `.csv` or `.tsv` file is shown as a table, with the first row as the header:
+
+```markdown
+/files/notes.txt
+/files/results.csv
+```
+
+### 3D models
+
+Put a `.glb` or `.gltf` file in `public/models/` and write its path on a line by itself. Visitors can drag to rotate
+and scroll or pinch to zoom, and there's a download link. The viewer
+([model-viewer](https://modelviewer.dev)) only loads on pages that have a model.
+
+```markdown
+/models/robot.glb
+```
+
+### Rust + wgpu (or any wasm-bindgen app) in a canvas
+
+Build the app for the web with wasm-bindgen and put the output in `public/wasm/<name>/`, then write the path to its
+`.js` file on a line by itself. The page gives the app a canvas and starts it when the visitor presses Run. Until
+the files are there it shows a "coming soon" placeholder.
+
+```markdown
+/wasm/renderer/renderer.js
+/wasm/renderer/renderer.js?height=600&entry=run
+```
+
+The page calls the module's default export (wasm-bindgen's `init`) and then `start(canvas)`, so export a `start`
+function that takes the canvas:
+
+```rust
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+pub async fn start(canvas: web_sys::HtmlCanvasElement) -> Result<(), JsValue> {
+    let instance = wgpu::Instance::default(); // WebGPU, or WebGL 2 with the "webgl" feature
+    let surface = instance
+        .create_surface(wgpu::SurfaceTarget::Canvas(canvas))
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    // ... request an adapter and device, configure the surface, then draw each frame
+    // with requestAnimationFrame.
+    Ok(())
+}
+```
+
+```bash
+cargo build --release --target wasm32-unknown-unknown
+wasm-bindgen --target web --out-dir public/wasm/renderer target/wasm32-unknown-unknown/release/renderer.wasm
+```
+
+Enable wgpu's `webgl` feature to also run in browsers without WebGPU.
+
+### Download links
+
+Give a link to a file in `public/` the title `"download"` and clicking it downloads the file instead of opening it.
+It's shown as a button with a download icon and the file size. Links to archives and installers (`.zip`, `.tar.gz`,
+`.7z`, `.exe`, `.dmg` and so on) always download. A download link to a file that doesn't exist fails the build.
+
+```markdown
+[The slides](/files/talk.pdf "download")
+[Source code](/files/project.zip)
+```
+
+### Links to other sites
+
+Links to other websites open in a new tab and get a small arrow; links within the site open normally.
 
 ### Linking to other posts and projects
 
@@ -151,12 +269,14 @@ Search is hybrid:
 
 - **Keyword matching** ([Fuse.js](https://www.fusejs.io)) shows results instantly and tolerates typos.
 - **Vector search** finds results with a similar meaning even when the words differ. When the site is built,
-  every post and project is split into passages and embedded with
-  [all-MiniLM-L6-v2](https://huggingface.co/Xenova/all-MiniLM-L6-v2) into `search-vectors.json`. In the browser,
+  every post and project gets one vector for the whole document and one for each paragraph, embedded with
+  [nomic-embed-text-v1.5](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5) into `search-vectors.json`. In the browser,
   the same model ([Transformers.js](https://huggingface.co/docs/transformers.js)) embeds the query. That download
-  (about 30 MB, compressed) only happens the first time a visitor searches, is cached afterwards, and is skipped
+  (about 140 MB) only happens the first time a visitor searches, is cached afterwards, and is skipped
   when the visitor's browser has data saver turned on. Keyword results show while it loads. Results that only match
-  by meaning are labelled "Similar meaning" and show the passage that matched.
+  by meaning are labelled "Similar meaning" and show the paragraph that matched best. To use a smaller model, set
+  `SEARCH_MODEL=Xenova/all-MiniLM-L6-v2` (about 23 MB) in the deploy step, or add another entry to
+  `EMBED_MODELS` in `src/lib/search.js`.
 
 ## Settings
 

@@ -1,0 +1,5 @@
+Program,Tree-walking (ms),Bytecode (ms),Speed-up
+fib(25),412,138,3.0x
+"loop to 1,000,000",655,201,3.3x
+string building,97,61,1.6x
+closures,233,95,2.5x

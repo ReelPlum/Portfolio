@@ -4,43 +4,50 @@ import Base from '../../layouts/Base.astro';
 import Playground from '../../components/Playground.astro';
 import Icon from '../../components/Icon.astro';
 import Backlinks from '../../components/Backlinks.astro';
+import Toc from '../../components/Toc.astro';
 import { getProjects } from '../../lib/queries.js';
 import { withBase, formatDate } from '../../lib/content.js';
 import { projectLd } from '../../lib/seo.js';
 import site from '../../../site.config.js';
+import { linkAttrs } from '../../lib/links.js';
 
 export async function getStaticPaths() {
   return (await getProjects()).map((project) => ({ params: { slug: project.id }, props: { project } }));
 }
 const { project } = Astro.props;
-const { Content } = await render(project);
+const { Content, headings } = await render(project);
 const { title, summary, tags, date, demo, source, link, cover } = project.data;
 const base = import.meta.env.BASE_URL;
 const url = new URL(Astro.url.pathname, Astro.site).href;
 const ld = projectLd({ title, summary, date, url, source, tags, image: cover && new URL(withBase(cover, base), Astro.site).href, author: site.author });
 ---
 <Base title={title} description={summary} image={cover} type="article" jsonLd={[ld]}>
-  <article class="article article--project">
+  <article class="article article--wide article--project">
     <header class="article-header">
       <a class="back-link" href={withBase('/projects/', base)}><Icon name="arrow_back" size={18} />Projects</a>
       <h1>{title}</h1>
       <p class="lede">{summary}</p>
+    </header>
+    <aside class="article-aside">
       <div class="meta">
         <span><Icon name="calendar_today" size={16} />{formatDate(date)}</span>
         {tags.length > 0 && <span class="tags">{tags.map((t) => <span class="tag">{t}</span>)}</span>}
       </div>
       {(source || link) && (
         <div class="article-actions">
-          {link && <a class="btn" href={link}><Icon name="open_in_new" size={18} />Visit</a>}
-          {source && <a class="btn btn-tonal" href={source}><Icon name="github" size={16} />View source</a>}
+          {link && <a class="btn" href={link} {...linkAttrs(link)}><Icon name="open_in_new" size={18} />Visit</a>}
+          {source && <a class="btn btn-tonal" href={source} {...linkAttrs(source)}><Icon name="github" size={16} />View source</a>}
         </div>
       )}
-    </header>
-    {demo && <Playground demo={demo} title={title} />}
-    {!demo && cover && <img class="article-cover" src={withBase(cover, base)} alt="" />}
-    <div class="prose">
-      <Content />
+      <Toc headings={headings} />
+    </aside>
+    <div class="article-main">
+      {demo && <Playground demo={demo} title={title} />}
+      {!demo && cover && <img class="article-cover" src={withBase(cover, base)} alt="" />}
+      <div class="prose">
+        <Content />
+      </div>
+      <Backlinks id={`projects/${project.id}`} />
     </div>
-    <Backlinks id={`projects/${project.id}`} />
   </article>
 </Base>

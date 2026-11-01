@@ -13,6 +13,8 @@ export default {
   email: 'hello@example.com', // TODO: your address. Shown on the contact page as a mailto: link
   social: [
     { label: 'GitHub', href: 'https://github.com/ReelPlum', icon: 'github' },
+    // TODO: your LinkedIn profile URL
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/your-profile/', icon: 'linkedin' },
   ],
   nav: [
     { label: 'Projects', href: '/projects/' },

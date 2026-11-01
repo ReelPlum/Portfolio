@@ -39,10 +39,10 @@ export function searchEmbeddings() {
         const data = {
           model,
           dim: vectors[0]?.length ?? 0,
-          chunks: chunks.map((c, i) => ({ doc: c.doc, text: c.text, v: quantize(vectors[i]) })),
+          chunks: chunks.map((c, i) => ({ doc: c.doc, k: c.kind, text: c.text, v: quantize(vectors[i]) })),
         };
         writeFileSync(join(out, 'search-vectors.json'), JSON.stringify(data));
-        logger.info(`Embedded ${chunks.length} passages with ${model}`);
+        logger.info(`Embedded ${docs.length} documents and ${chunks.length - docs.length} paragraphs with ${model}`);
       },
     },
   };

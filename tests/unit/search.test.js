@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   markdownToText, chunkText, createKeywordIndex, keywordSearch, termRanges, mergeRanges, highlightRanges,
   segments, snippet, quantize, dequantize, cosine, hashEmbed, semanticScores, mergeResults, matchedFields,
-  findMath, renderParts, tokenize,
+  findMath, renderParts, tokenize, paragraphs, prefixed, EMBED_MODELS, DEFAULT_MODEL,
 } from '../../src/lib/search.js';
 import { buildChunks } from '../../src/lib/search-build.js';
 
@@ -51,10 +51,50 @@ describe('chunkText', () => {
     expect(chunks).toEqual(['One. Two.', 'Three.', 'Four.']);
     expect(chunkText('')).toEqual([]);
   });
-  it('buildChunks adds a summary passage per document', () => {
-    const chunks = buildChunks([docs[0]]);
-    expect(chunks[0]).toEqual({ doc: 'projects/interp', text: docs[0].description, embedText: 'My Interpreter. A language interpreter in Rust. Rust, WebAssembly' });
-    expect(chunks.length).toBeGreaterThan(1);
+  it('buildChunks makes one whole-document vector plus one per paragraph', () => {
+    const doc = { ...docs[0], body: 'First paragraph about the lexer and how it turns the source text into a stream of tokens.\n\nSecond paragraph about the parser, which builds a syntax tree from the stream of tokens.' };
+    const chunks = buildChunks([doc]);
+    expect(chunks[0]).toMatchObject({ doc: 'projects/interp', kind: 'd', text: doc.description });
+    expect(chunks[0].embedText).toContain('My Interpreter. A language interpreter in Rust. Rust, WebAssembly');
+    expect(chunks[0].embedText).toContain('Second paragraph');
+    expect(chunks.slice(1).map((c) => c.kind)).toEqual(['p', 'p']);
+    expect(chunks[2]).toMatchObject({ text: doc.body.split('\n\n')[1], embedText: `My Interpreter. ${doc.body.split('\n\n')[1]}` });
+  });
+});
+
+describe('paragraphs', () => {
+  it('splits on blank lines', () => {
+    const a = 'A'.repeat(100);
+    const b = 'B'.repeat(100);
+    expect(paragraphs(`${a}\n\n${b}`)).toEqual([a, b]);
+    expect(paragraphs('')).toEqual([]);
+  });
+  it('joins short blocks such as headings to the paragraph after them', () => {
+    const p = 'This paragraph explains how the lexer works in some detail, long enough to stand alone.';
+    expect(paragraphs(`How it works\n\n${p}`)).toEqual([`How it works ${p}`]);
+  });
+  it('keeps a short trailing block with the paragraph before it', () => {
+    const p = 'This paragraph explains how the lexer works in some detail, long enough to stand alone.';
+    expect(paragraphs(`${p}\n\nThe end.`)).toEqual([`${p} The end.`]);
+  });
+  it('splits very long paragraphs by sentence', () => {
+    const long = Array.from({ length: 40 }, (_, i) => `Sentence number ${i} is here.`).join(' ');
+    const out = paragraphs(long, { max: 300 });
+    expect(out.length).toBeGreaterThan(1);
+    expect(out.every((p) => p.length <= 300)).toBe(true);
+  });
+});
+
+describe('embedding models', () => {
+  it('uses nomic-embed-text with its search prefixes by default', () => {
+    expect(DEFAULT_MODEL).toBe('nomic-ai/nomic-embed-text-v1.5');
+    expect(prefixed(DEFAULT_MODEL, 'query', 'rust')).toBe('search_query: rust');
+    expect(prefixed(DEFAULT_MODEL, 'document', 'rust')).toBe('search_document: rust');
+    expect(prefixed('Xenova/all-MiniLM-L6-v2', 'query', 'rust')).toBe('rust');
+  });
+  it('rejects unknown models with a helpful message', () => {
+    expect(() => prefixed('nope/model', 'query', 'x')).toThrow(/Unknown embedding model "nope\/model"/);
+    expect(Object.keys(EMBED_MODELS)).toContain(DEFAULT_MODEL);
   });
 });
 
@@ -130,13 +170,24 @@ describe('vectors', () => {
   });
   it('semanticScores keeps the best passage per document', () => {
     const chunks = [
-      { doc: 'a', text: 'one', vec: [1, 0] },
-      { doc: 'a', text: 'two', vec: [0.9, 0.1] },
-      { doc: 'b', text: 'three', vec: [0, 1] },
+      { doc: 'a', kind: 'p', text: 'one', vec: [1, 0] },
+      { doc: 'a', kind: 'p', text: 'two', vec: [0.9, 0.1] },
+      { doc: 'b', kind: 'p', text: 'three', vec: [0, 1] },
     ];
     const s = semanticScores([1, 0], chunks);
     expect(s.get('a')).toEqual({ score: 1, chunk: 'one' });
     expect(s.get('b').score).toBeCloseTo(0);
+  });
+  it('scores a document by its whole-document vector too, but shows its best paragraph', () => {
+    const chunks = [
+      { doc: 'a', kind: 'd', text: 'summary', vec: [1, 0] },
+      { doc: 'a', kind: 'p', text: 'close paragraph', vec: [0.8, 0.6] },
+      { doc: 'a', kind: 'p', text: 'far paragraph', vec: [0, 1] },
+    ];
+    expect(semanticScores([1, 0], chunks).get('a')).toEqual({ score: 1, chunk: 'close paragraph' });
+  });
+  it('a document with no paragraphs still scores, without a passage', () => {
+    expect(semanticScores([1, 0], [{ doc: 'a', kind: 'd', text: 's', vec: [1, 0] }]).get('a')).toEqual({ score: 1, chunk: null });
   });
 });
 
@@ -186,6 +237,6 @@ describe('matchedFields', () => {
     const sem = new Map([['blog/pasta', { score: 0.9, chunk: 'Boil water, add salt.' }]]);
     const r = mergeResults([], sem, docs);
     const f = matchedFields(r[0], 'italian dinner recipe');
-    expect(f.find((x) => x.key === 'passage')).toMatchObject({ label: 'Related passage', text: 'Boil water, add salt.' });
+    expect(f.find((x) => x.key === 'passage')).toMatchObject({ label: 'Matching paragraph', text: 'Boil water, add salt.' });
   });
 });
