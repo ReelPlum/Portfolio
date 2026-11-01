@@ -35,6 +35,15 @@ describe('deploy workflow', () => {
     expect(deploy.with.artifact_name).toBe(upload.with.name);
   });
 
+  // Regression: re-running an old run on main cancelled the newest run through the shared
+  // concurrency group, so the latest commit never deployed.
+  it('never cancels runs on main, and deploys one at a time without cancelling', () => {
+    const { group, 'cancel-in-progress': cancel } = workflow.concurrency;
+    expect(cancel).toBe("${{ github.event_name == 'pull_request' }}");
+    expect(group).toContain('github.run_id');
+    expect(workflow.jobs.deploy.concurrency).toEqual({ group: 'pages', 'cancel-in-progress': false });
+  });
+
   it('uploads exactly one Pages artifact', () => {
     expect(uses.filter((u) => u.startsWith('actions/upload-pages-artifact@'))).toHaveLength(1);
   });

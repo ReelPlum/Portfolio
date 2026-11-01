@@ -11,9 +11,11 @@ permissions:
   pages: write
   id-token: write
 
+# A new push to a pull request replaces its older run. Runs on main are never
+# cancelled, so re-running an old run can't cancel the newest deploy.
 concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref }}-${{ github.event_name == 'pull_request' && 'pr' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   test:
@@ -56,6 +58,10 @@ jobs:
     needs: [test, semantic-search]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    # One deploy at a time; a queued deploy waits instead of cancelling the running one.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
