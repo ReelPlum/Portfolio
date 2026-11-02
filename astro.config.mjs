@@ -13,6 +13,7 @@ import { remarkCode } from './src/lib/remark-code.js';
 import { remarkGithubFiles } from './src/lib/remark-github-files.js';
 import { createGithubFiles } from './src/lib/github-files.js';
 import { githubFilesIntegration } from './src/lib/github-files-integration.js';
+import { remarkProducts } from './src/lib/remark-products.js';
 import { rehypeDownloadLinks } from './src/lib/rehype-download-links.js';
 import { rehypeExternalLinks } from './src/lib/rehype-external-links.js';
 import { buildTargets } from './src/lib/references.js';
@@ -43,6 +44,8 @@ process.env.GITHUB_FILES_DIR = githubFiles.dir;
 // Where code files included with a path on its own line (e.g. /code/main.rs) are read from.
 const publicDirs = [fileURLToPath(new URL('./public/', import.meta.url)), ...(fixturePublic ? [fixturePublic] : []), githubFiles.dir];
 const siteUrl = process.env.SITE_URL || site.url;
+// Products used by more than one post (`use: name` in a ```product block).
+const productsDir = fileURLToPath(new URL(`./${contentDir}/products/`, import.meta.url));
 const targets = buildTargets(fileURLToPath(new URL(`./${contentDir}/`, import.meta.url)));
 
 export default defineConfig({
@@ -54,7 +57,7 @@ export default defineConfig({
   integrations: [githubFilesIntegration({ files: githubFiles, contentDir: fileURLToPath(new URL(`./${contentDir}/`, import.meta.url)), base }), mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings()],
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkLatexPreamble, [remarkGithubFiles, { files: githubFiles }], [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
+      remarkPlugins: [remarkLatexPreamble, [remarkGithubFiles, { files: githubFiles }], [remarkProducts, { base, productsDir, affiliates: site.affiliates, author: site.author }], [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
       rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }], [rehypeDownloadLinks, { publicDirs, base }]],
     }),
     // Code blocks are highlighted by src/lib/remark-code.js (adds the language label and copy button).

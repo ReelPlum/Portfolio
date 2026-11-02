@@ -5,7 +5,7 @@ import { codeBlockHtml, tableBlockHtml, parseInclude, sliceLines, metaTitle } fr
 import { iconSvg } from './icons.js';
 import { withBase } from './content.js';
 
-const SKIP_LANGS = new Set(['math', 'preamble', 'latex-preamble']);
+const SKIP_LANGS = new Set(['math', 'preamble', 'latex-preamble', 'product']);
 
 function soleText(node) {
   const kids = node.children.filter((c) => !(c.type === 'text' && c.value.trim() === ''));
