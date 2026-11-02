@@ -1,0 +1,65 @@
+name: Visual
+
+# Screenshots of the main pages in light and dark mode at phone, 1080p and 4K sizes, compared with the
+# baselines in tests/visual/baselines/. Runs in the Playwright Docker image so fonts and rendering are
+# the same on every run.
+#
+# - Missing screenshots (a new page) are written and committed to the branch.
+# - A changed screenshot fails; the report with before / after / diff images is uploaded.
+# - To accept intended changes: Actions → Visual → Run workflow on your branch with "update" ticked.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      update:
+        description: Replace all screenshots with new ones and commit them
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-noble # keep in step with @playwright/test in package.json
+    env:
+      HOME: /root
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # On pull requests, the branch itself (not the merge commit), so new screenshots can be committed to it.
+          ref: ${{ github.head_ref || github.ref_name }}
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Compare screenshots
+        run: npm run test:visual -- --update-snapshots=${{ inputs.update && 'all' || 'missing' }}
+      - name: Commit new or updated screenshots
+        # Only for branches in this repository (a fork's pull request can't be pushed to).
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          git add tests/visual/baselines
+          if git diff --cached --quiet; then echo "Screenshots unchanged"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Update visual test screenshots"
+          git push
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: visual-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14

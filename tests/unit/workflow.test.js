@@ -96,3 +96,39 @@ describe('link checks', () => {
     }
   });
 });
+
+describe('visual regression tests', () => {
+  const visual = parse(readFileSync(new URL('../../.github/workflows/visual.yml', import.meta.url), 'utf8'));
+  const job = visual.jobs.visual;
+  const pkg = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
+
+  it('run in the Playwright image that matches the pinned Playwright version, so screenshots are stable', () => {
+    const version = pkg.devDependencies['@playwright/test'];
+    expect(version).toMatch(/^\d+\.\d+\.\d+$/); // pinned exactly
+    expect(pkg.devDependencies.playwright).toBe(version);
+    expect(job.container.image).toBe(`mcr.microsoft.com/playwright:v${version}-noble`);
+  });
+
+  it('add missing screenshots on every run, and replace them all when run with "update"', () => {
+    expect(visual.on.workflow_dispatch.inputs.update.type).toBe('boolean');
+    const compare = job.steps.find((s) => s.name === 'Compare screenshots');
+    expect(compare.run).toBe("npm run test:visual -- --update-snapshots=${{ inputs.update && 'all' || 'missing' }}");
+    const commit = job.steps.find((s) => s.name === 'Commit new or updated screenshots');
+    expect(commit.run).toContain('git add tests/visual/baselines');
+    expect(commit.if).toContain('head.repo.full_name == github.repository');
+    expect(job.steps.find((s) => s.uses?.startsWith('actions/checkout@')).with.ref).toBe('${{ github.head_ref || github.ref_name }}');
+    expect(visual.permissions.contents).toBe('write');
+  });
+
+  it('cover light and dark mode at phone, 1080p and 4K sizes', async () => {
+    const { default: config } = await import('../../playwright.visual.config.js');
+    const projects = Object.fromEntries(config.projects.map((p) => [p.name, p.use]));
+    expect(Object.keys(projects).sort()).toEqual(['1080p-dark', '1080p-light', '4k-dark', '4k-light', 'phone-dark', 'phone-light']);
+    expect(projects['4k-light'].viewport).toEqual({ width: 3840, height: 2160 });
+    expect(projects['1080p-dark'].viewport).toEqual({ width: 1920, height: 1080 });
+    expect(projects['phone-dark'].isMobile).toBe(true);
+    expect(projects['phone-dark'].colorScheme).toBe('dark');
+    expect(config.retries).toBe(0);
+    expect(config.snapshotPathTemplate).toBe('tests/visual/baselines/{arg}-{projectName}{ext}');
+  });
+});
