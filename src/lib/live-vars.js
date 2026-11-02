@@ -143,7 +143,7 @@ export function fnPlotSvgInner(plot, values) {
 
 export function fnPlotHtml(plot, values) {
   const label = `Plot of ${plot.ys.map((y) => `y = ${y}`).join(' and ')} for x from ${formatNumber(plot.x[0])} to ${formatNumber(plot.x[1])}`;
-  const legend = plot.ys.length > 1 ? `<ul class="plot-legend">${plot.ys.map((y, i) => `<li class="series-${i + 1}"><span class="plot-swatch plot-swatch-line"></span><span>y = ${esc(y)}</span></li>`).join('')}</ul>` : '';
+  const legend = plot.ys.length > 1 ? `<ul class="plot-legend">${plot.ys.map((y, i) => `<li><span class="plot-swatch plot-swatch-line series-${i + 1}" aria-hidden="true"></span><span>y = ${esc(y)}</span></li>`).join('')}</ul>` : '';
   return `<figure class="plot fnplot" data-fnplot="${esc(JSON.stringify(plot))}">${plot.title ? `<figcaption class="plot-title">${esc(plot.title)}</figcaption>` : ''}${legend}`
     + `<svg class="fnplot-svg" viewBox="0 0 ${W} ${plot.height}" role="img" aria-label="${esc(label)}">${fnPlotSvgInner(plot, values)}</svg></figure>`;
 }

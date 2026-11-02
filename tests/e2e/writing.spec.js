@@ -246,7 +246,7 @@ test.describe('sliders', () => {
     await page.goto(PAGE);
     await expect(page.locator('html')).toHaveAttribute('data-live-vars', 'ready');
     const amp = page.getByRole('slider', { name: /Amplitude/ });
-    const plot = page.locator('[data-fnplot] path.fn-line');
+    const plot = page.locator('[data-fnplot] path.fn-line').first();
     const before = await plot.getAttribute('d');
     await expect(page.locator('.live-value').first()).toHaveText('2');
     await amp.focus();

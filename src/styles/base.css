@@ -1,7 +1,7 @@
 /* Material Design 3 tokens (Google colour roles), flat colours only. Nothing here animates. */
 :root {
-  --font: 'Google Sans Text', 'Google Sans', 'Roboto Flex Variable', Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
-  --font-display: 'Google Sans Display', 'Google Sans', 'Roboto Flex Variable', Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --font: 'Google Sans Text', 'Google Sans', 'Roboto Flex Variable', 'Roboto Flex Fallback', Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --font-display: 'Google Sans Display', 'Google Sans', 'Roboto Flex Variable', 'Roboto Flex Fallback', Roboto, system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
   --font-mono: 'Google Sans Code', 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --surface: #ffffff;
@@ -95,3 +95,11 @@ mark { background: var(--mark); color: var(--on-mark); border-radius: 3px; paddi
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; background: var(--primary); color: var(--on-primary); padding: 10px 16px; border-radius: var(--r-full); }
 .skip-link:focus { top: 12px; }
+
+/* Arial resized to Roboto's measurements, used until Roboto Flex has loaded, so lines wrap the same way
+   and nothing moves when the font swaps in. */
+@font-face {
+  font-family: 'Roboto Flex Fallback';
+  src: local('Arial'), local('Liberation Sans'), local('Helvetica');
+  ascent-override: 92.77%; descent-override: 24.41%; line-gap-override: 0%; size-adjust: 100.3%;
+}

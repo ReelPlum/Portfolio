@@ -6,10 +6,32 @@
 //   /code/tiny-calc/main.rs#L10-L24    only lines 10 to 24
 //
 // Fenced blocks can be given a file name too:  ```rust title="src/main.rs"
-import { createHighlighter, bundledLanguages, bundledLanguagesInfo } from 'shiki';
+import { createHighlighter, bundledLanguages, bundledLanguagesInfo, bundledThemes } from 'shiki';
+import { readable } from './contrast.js';
 import { iconSvg } from './icons.js';
 
-export const THEMES = { light: 'github-light', dark: 'github-dark' };
+// The code backgrounds in each mode (the code block, and added / removed lines in diffs); must match
+// --surface-container and --diff-*-bg in the stylesheets (a test checks).
+export const CODE_BACKGROUNDS = { light: ['#f0f4f9', '#e6f4ea', '#fce8e6'], dark: ['#1e1f20', '#16291c', '#331d1c'] };
+
+/** A Shiki theme with every token colour darkened or lightened just enough to read on `backgrounds`. */
+export function readableTheme(theme, backgrounds, name = `${theme.name}-readable`) {
+  const fix = (c) => (typeof c === 'string' && /^#[0-9a-f]{6}([0-9a-f]{2})?$/i.test(c) && c.length === 7 ? readable(c, backgrounds) : c);
+  return {
+    ...theme,
+    name,
+    colors: { ...theme.colors, 'editor.foreground': fix(theme.colors?.['editor.foreground']) },
+    // Tokens with their own background (diff markup) are left as the theme made them.
+    tokenColors: (theme.tokenColors || []).map((t) => (t.settings?.foreground && !t.settings.background ? { ...t, settings: { ...t.settings, foreground: fix(t.settings.foreground) } } : t)),
+  };
+}
+
+const THEME_NAMES = { light: 'github-light', dark: 'github-dark' };
+let themesPromise;
+const loadThemes = () => (themesPromise ??= Promise.all(Object.entries(THEME_NAMES).map(async ([mode, name]) => [mode, readableTheme((await bundledThemes[name]()).default, CODE_BACKGROUNDS[mode])]))
+  .then(Object.fromEntries));
+/** Themes for codeToHtml / codeToTokens: { light, dark }. */
+export const themes = async () => Object.fromEntries(Object.entries(await loadThemes()).map(([mode, t]) => [mode, t.name]));
 const PLAIN = new Set(['', 'text', 'txt', 'plain', 'plaintext']);
 
 // File extensions Shiki doesn't list as aliases.
@@ -91,7 +113,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 let highlighterPromise;
 async function highlighter(lang) {
-  highlighterPromise ??= createHighlighter({ themes: Object.values(THEMES), langs: [] });
+  highlighterPromise ??= loadThemes().then((t) => createHighlighter({ themes: Object.values(t), langs: [] }));
   const hl = await highlighterPromise;
   if (lang && lang !== 'text' && !hl.getLoadedLanguages().includes(lang)) await hl.loadLanguage(lang);
   return hl;
@@ -102,7 +124,7 @@ export async function codeBlockHtml(code, { lang, title, href } = {}) {
   const info = PLAIN.has(String(lang || '').toLowerCase()) ? null : languageInfo(lang);
   const id = info && bundledLanguages[info.id] ? info.id : 'text';
   const hl = await highlighter(id);
-  const pre = hl.codeToHtml(code, { lang: id, themes: THEMES });
+  const pre = hl.codeToHtml(code, { lang: id, themes: await themes() });
   const label = languageLabel(lang);
   const name = title ? (href ? `<a class="code-title" href="${esc(href)}">${esc(title)}</a>` : `<span class="code-title">${esc(title)}</span>`) : '';
   return `<figure class="code-block" data-language="${esc(id)}"><figcaption class="code-head"><span class="code-lang">${esc(label)}</span>${name}`
@@ -153,7 +175,7 @@ export async function highlightLines(code, lang) {
   const id = info && bundledLanguages[info.id] ? info.id : 'text';
   const hl = await highlighter(id);
   if (id === 'text') return code.split('\n').map(esc);
-  const { tokens } = hl.codeToTokens(code, { lang: id, themes: THEMES });
+  const { tokens } = hl.codeToTokens(code, { lang: id, themes: await themes() });
   return tokens.map((line) => line.map((t) => {
     const style = Object.entries(t.htmlStyle || {}).map(([k, v]) => `${k}:${v}`).join(';');
     return style ? `<span style="${style}">${esc(t.content)}</span>` : esc(t.content);

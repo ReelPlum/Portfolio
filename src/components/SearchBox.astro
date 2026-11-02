@@ -37,8 +37,10 @@ const icons = JSON.stringify({
 </form>
 
 <script>
-  import { search, renderResults, loadIndex } from '../lib/search-client.js';
-  import { wordsFromPath } from '../lib/search.js';
+  // The search code (keyword index, KaTeX for formulas in results) downloads when the box is first used,
+  // so pages that nobody searches from stay light.
+  let clientPromise;
+  const client = () => (clientPromise ??= import('../lib/search-client.js'));
 
   const STATUS = {
     loading: 'Keyword matches shown. Loading semantic search…',
@@ -73,7 +75,7 @@ const icons = JSON.stringify({
         return;
       }
       if (all) all.href = `${form.action}?q=${encodeURIComponent(q)}`;
-      search(q, (results, { semantic }) => {
+      client().then(({ search, renderResults }) => search(q, (results, { semantic }) => {
         if (mine !== seq) return; // a newer query is running
         renderResults(list, results, q, { limit: variant === 'page' ? Infinity : 5, icons });
         status.innerHTML = '';
@@ -84,11 +86,11 @@ const icons = JSON.stringify({
         }
         if (panel) panel.hidden = false;
         if (all) all.hidden = results.length <= 5;
-      });
+      }));
     };
 
     input.addEventListener('input', run);
-    input.addEventListener('focus', () => { loadIndex(); if (input.value && panel) run(); });
+    input.addEventListener('focus', () => { client().then((m) => m.loadIndex()); if (input.value && panel) run(); });
     clear.addEventListener('click', () => { input.value = ''; run(); input.focus(); });
     form.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && panel) { panel.hidden = true; input.blur(); }
@@ -108,8 +110,10 @@ const icons = JSON.stringify({
     }
     // On the "not found" page, search for the words of the address that was asked for.
     if (variant === 'notfound') {
-      const q = wordsFromPath(location.pathname, import.meta.env.BASE_URL);
-      if (q) { input.value = q; run(); }
+      import('../lib/search.js').then(({ wordsFromPath }) => {
+        const q = wordsFromPath(location.pathname, import.meta.env.BASE_URL);
+        if (q) { input.value = q; run(); }
+      });
     }
   }
 </script>

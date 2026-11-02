@@ -271,7 +271,7 @@ describe('diffs', () => {
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain('class="diff-view diff-view-unified" hidden');
     expect(html).toContain('<span class="diff-stat-add">+1</span> <span class="diff-stat-del">−1</span>');
-    expect(html).toContain('style="color:#D73A49;--shiki-dark:#F97583"');
+    expect(html).toMatch(/style="color:#[0-9A-Fa-f]{6};--shiki-dark:#F97583"/); // keywords (light colour made readable)
     expect(html).toContain('<span class="visually-hidden">Removed: </span>');
   });
 });

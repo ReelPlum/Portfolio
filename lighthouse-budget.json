@@ -1,0 +1,7 @@
+{
+  "exclude": ["@huggingface", "transformers", "onnxruntime", "ort-wasm", "huggingface\\.co", "\\.onnx($|\\?)"],
+  "pages": {
+    "default": { "script": 25, "total": 250 },
+    "blog/everything-this-site-can-do/": { "script": 110, "total": 450 }
+  }
+}

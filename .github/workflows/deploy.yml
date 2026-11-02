@@ -56,8 +56,34 @@ jobs:
           REAL_MODEL: '1'
           SEARCH_EMBEDDINGS: required
 
+  lighthouse:
+    # Speed, accessibility, best practices and SEO for four pages on an emulated phone, plus byte budgets
+    # (lighthouserc.cjs, lighthouse-budget.json). Fails when a score drops below its threshold.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          SEARCH_EMBEDDINGS: hash
+          RENDERS: required
+      - run: npm run lighthouse
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 14
+
   deploy:
-    needs: [test, semantic-search]
+    needs: [test, semantic-search, lighthouse]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     # One deploy at a time; a queued deploy waits instead of cancelling the running one.

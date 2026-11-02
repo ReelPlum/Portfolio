@@ -131,6 +131,9 @@ export function plotSvg(spec, { rows, xKind }) {
     y: { label: spec.yLabel, grid: false, nice: true, zero: spec.type !== 'scatter', labelArrow: 'none' },
     marks,
   });
+  // The chart is one image with one label; Plot's labels on inner groups ("line", "rule") aren't allowed on
+  // a <g> without a role, and screen readers wouldn't read them inside role="img" anyway.
+  svg.querySelectorAll('[aria-label]').forEach((el) => el.removeAttribute('aria-label'));
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', `${spec.title || `${spec.type} chart`} of ${spec.y.join(', ')} by ${spec.x}`);
   return svg.outerHTML;

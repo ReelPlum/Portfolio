@@ -102,7 +102,7 @@ y = \var{a} \sin(\var{k} x)
 $$
 
 ```fnplot
-y: a*sin(k*x)
+y: a*sin(k*x), a*cos(k*x)
 x: -pi..pi
 y-range: -5..5
 title: A sine wave

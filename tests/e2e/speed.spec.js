@@ -99,3 +99,47 @@ test.describe('responsive images', () => {
     await expect(page.locator('.compare source[type="image/webp"]')).toHaveCount(2);
   });
 });
+
+test.describe('what every page loads', () => {
+  // Regression: the search box pulled in its index code and KaTeX (76 KB) on every page.
+  test('search code downloads only when the search box is used', async ({ page }) => {
+    const scripts = [];
+    page.on('request', (r) => { if (r.resourceType() === 'script') scripts.push(r.url()); });
+    await page.goto('');
+    await page.waitForLoadState('networkidle');
+    expect(scripts.filter((u) => /search-client|katex|latex/i.test(u))).toEqual([]);
+    const input = page.getByRole('combobox').or(page.locator('header input[type="search"]')).first();
+    await input.fill('interpreter');
+    await expect(page.locator('.search-results li').first()).toBeVisible();
+    expect(scripts.some((u) => /search-client/.test(u))).toBe(true);
+  });
+
+  test('the main font is preloaded, so text does not shift when it arrives', async ({ page }) => {
+    await page.goto('');
+    const href = await page.locator('link[rel="preload"][as="font"]').getAttribute('href');
+    expect(href).toMatch(/roboto-flex-latin-wght-normal\.[\w-]+\.woff2$/);
+    const css = await page.evaluate(() => [...document.styleSheets].flatMap((s) => { try { return [...s.cssRules].map((r) => r.cssText); } catch { return []; } }).join('\n'));
+    expect(css).toContain(href.split('/').pop());
+  });
+});
+
+test.describe('readable text', () => {
+  // Regression (Lighthouse): links in paragraphs were told apart by colour alone.
+  test('links inside running text are underlined; buttons and navigation are not', async ({ page }) => {
+    await page.goto('blog/hello-world/');
+    const inText = page.locator('.prose p a', { hasText: 'Astro' });
+    expect(await inText.evaluate((a) => getComputedStyle(a).textDecorationLine)).toBe('underline');
+    expect(await page.locator('.nav a').first().evaluate((a) => getComputedStyle(a).textDecorationLine)).toBe('none');
+  });
+
+  // Regression (Lighthouse): function plot legends were written in the series colour.
+  test('function plot legend text uses the text colour', async ({ page }) => {
+    await page.goto('blog/writing-features/');
+    const legend = page.locator('figure.fnplot .plot-legend li').nth(1);
+    const text = await legend.evaluate((li) => getComputedStyle(li).color);
+    const swatch = await legend.locator('.plot-swatch').evaluate((s) => getComputedStyle(s).backgroundColor);
+    const body = await page.evaluate(() => getComputedStyle(document.body).color);
+    expect(text).toBe(body);
+    expect(swatch).not.toBe(text);
+  });
+});

@@ -7,6 +7,8 @@ import { ldJson, absolute } from '../lib/seo.js';
 import { goatcounterUrl } from '../lib/analytics.js';
 import { ogImagePath } from '../lib/og.js';
 import '@fontsource-variable/roboto-flex';
+// Preloaded so text is drawn in the right font from the start, instead of shifting when it arrives.
+import robotoFlexUrl from '@fontsource-variable/roboto-flex/files/roboto-flex-latin-wght-normal.woff2?url';
 import 'katex/dist/katex.min.css';
 import '../styles/base.css';
 import '../styles/icons.css';
@@ -28,6 +30,7 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <link rel="preload" href={robotoFlexUrl} as="font" type="font/woff2" crossorigin />
     {!noindex && <link rel="canonical" href={canonical} />}
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={site.title} href={`${base}rss.xml`} />
