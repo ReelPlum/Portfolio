@@ -9,8 +9,8 @@ export function demoAsset(demo) {
   return p.replace(/^\/+/, '').split(/[?#]/)[0];
 }
 
-/** False when the demo points at a file that has not been dropped into public/ yet. */
-export function demoReady(demo, publicDirs = [join(process.cwd(), 'public'), process.env.EXTRA_PUBLIC_DIR].filter(Boolean)) {
+/** False when the demo points at a file that has not been dropped into public/ yet (or downloaded from GitHub). */
+export function demoReady(demo, publicDirs = [join(process.cwd(), 'public'), process.env.EXTRA_PUBLIC_DIR, process.env.GITHUB_FILES_DIR].filter(Boolean)) {
   if (!demo) return false;
   const asset = demoAsset(demo);
   return asset === null || [].concat(publicDirs).some((dir) => existsSync(join(dir, asset)));

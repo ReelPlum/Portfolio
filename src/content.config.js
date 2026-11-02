@@ -1,6 +1,10 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { githubToLocal } from './lib/github-files.js';
+
+// A link to a file on GitHub (https://github.com/you/repo/blob/main/file) becomes the copy the build downloads.
+const file = () => z.string().transform(githubToLocal);
 
 const md = '**/[^_]*.{md,mdx}'; // files starting with _ are ignored (drafts / partials)
 // The tests build the site from tests/fixtures/content so they don't depend on your real posts.
@@ -13,7 +17,7 @@ const blog = defineCollection({
     date: z.coerce.date(),
     description: z.string().optional(),
     tags: z.array(z.string()).default([]),
-    cover: z.string().optional(),
+    cover: file().optional(),
     draft: z.boolean().default(false),
   }),
 });
@@ -24,7 +28,7 @@ const demo = z.discriminatedUnion('type', [
   // to stdout / stderr is shown in the console under the editor.
   z.object({
     type: z.literal('wasi'),
-    wasm: z.string(),
+    wasm: file(),
     // How the code in the editor reaches the program:
     //   file  -> written to a virtual file and its path passed as the first argument (default)
     //   stdin -> piped to stdin
@@ -37,13 +41,13 @@ const demo = z.discriminatedUnion('type', [
   // A wasm-bindgen / wasm-pack build (--target web). `module` is the generated .js file.
   z.object({
     type: z.literal('bindgen'),
-    module: z.string(),
+    module: file(),
     entry: z.string().default('run'),
     example: z.string().default(''),
     examples: z.array(z.object({ name: z.string(), code: z.string() })).default([]),
   }),
   // Any page (your own build in public/wasm, or an external URL) shown in a sandboxed frame.
-  z.object({ type: z.literal('iframe'), src: z.string(), height: z.number().default(520) }),
+  z.object({ type: z.literal('iframe'), src: file(), height: z.number().default(520) }),
 ]);
 
 const projects = defineCollection({
@@ -53,7 +57,7 @@ const projects = defineCollection({
     summary: z.string(),
     date: z.coerce.date(),
     tags: z.array(z.string()).default([]),
-    cover: z.string().optional(),
+    cover: file().optional(),
     source: z.string().url().optional(), // "View source" button
     link: z.string().url().optional(),
     featured: z.boolean().default(false),
