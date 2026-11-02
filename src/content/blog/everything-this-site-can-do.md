@@ -22,7 +22,8 @@ Write `![Description](/images/file.png)` with the file in `public/images/`:
 
 ![The interpreter's logo](/images/interpreter.svg)
 
-Click an image to see it full screen. With several images in a post, the arrow keys or a swipe move
+Images are made smaller when the site is built: your browser gets an AVIF or WebP copy in the size that fits
+your screen, and images further down only load when you scroll near them. Click an image to see it full screen. With several images in a post, the arrow keys or a swipe move
 between them, and Escape closes the viewer.
 
 ### Before and after
@@ -47,7 +48,8 @@ caption: The same sphere before and after adding diffuse and specular light.
 
 ## Videos
 
-A YouTube or Vimeo link on a line of its own becomes a player:
+A YouTube or Vimeo link on a line of its own becomes a player. Nothing loads from YouTube or Vimeo until you
+press play:
 
 https://www.youtube.com/watch?v=aqz-KE-bpKQ
 
@@ -300,6 +302,19 @@ Projects can show a status badge with `status: active` (or `maintained`, `experi
 `finished`, `archived`), like the one on [[interpreter]].
 
 The [CV](/cv/) is made from `src/content/cv.yaml`, with a PDF version printed when the site is built.
+
+## Fast, and checked
+
+Heavy things load only when you get near them: the PDF viewer, the 3D viewer, diagrams and the search code
+(which waits until you use the search box). 3D models are shown from a compressed copy, and the Download
+button still gives you the original file.
+
+Every time the site changes, it is checked automatically:
+
+- every link, image and embed on every page, including links to other sites and whether videos still exist;
+- a Lighthouse score for speed, accessibility, best practices and SEO, and a size budget for each page;
+- screenshots of the main pages in light and dark mode on a phone, at 1080p and at 4K, compared with the
+  last approved ones.
 
 ## Search
 

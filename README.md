@@ -40,7 +40,10 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - Project status badges, a CV page built from one data file with a PDF download, a 404 page that searches
   for what you were looking for, and optional privacy-friendly analytics (GoatCounter)
 - Search-engine friendly: static HTML, sitemap, `robots.txt`, RSS, Open Graph tags and JSON-LD structured data
-- Unit tests (Vitest) and browser tests (Playwright), run on every push
+- Fast by default: AVIF / WebP images in several sizes, compressed 3D models, minified SVG and JSON, and
+  videos, PDFs, 3D models and diagrams that load only when needed (downloads are never changed)
+- Unit tests (Vitest) and browser tests (Playwright), run on every push, plus a link checker, a Lighthouse
+  budget and visual regression screenshots in light and dark mode at phone, 1080p and 4K sizes
 
 ## Adding content
 
@@ -384,6 +387,17 @@ https://vimeo.com/VIDEO_ID
 
 A link inside a sentence stays a normal link.
 
+Nothing is loaded from YouTube or Vimeo until the reader presses play: the post shows a play button in the
+video's place, and the player replaces it on click (readers without JavaScript get the player straight away).
+
+When the site is built, images (PNG, JPEG, WebP…) get AVIF and WebP copies in several widths, and the browser
+picks the smallest that fits. Every image gets its width and height so the page doesn't jump while it loads, and
+images after the first wait until you scroll near them. The file you put in `public/` is never changed, so links
+to it and downloads keep working. In `npm run dev` the originals are shown.
+
+3D models are shown from a compressed copy (`dist/_opt/`); the Download button gives the original. SVG images
+and JSON files are minified, except anything in `public/files/`, which is left exactly as it is.
+
 ### Authors and guest posts
 
 People who write on the site are listed in `src/content/authors.yaml`:
@@ -518,6 +532,50 @@ content never breaks them. They use a tiny stand-in for the embedding model so t
 playground for real.
 
 House rule: every bug that gets fixed gets a test that reproduces it, marked with a `Regression:` comment.
+
+### Links, images and embeds
+
+```bash
+npm run build
+npm run check:links               # every internal link, #fragment, image, model, PDF and app
+npm run check:links -- --external # also links to other sites, and YouTube / Vimeo videos
+```
+
+Images, models and PDFs are opened, not just found, so a broken or wrongly named file is caught. Links to other
+sites count as broken only when they certainly are (404, 410, unknown host, a removed or unembeddable video);
+timeouts, server errors and bot blocks (403, 429, LinkedIn's 999) are warnings. Add patterns to
+`linkCheck.skip` in `site.config.js` for sites you don't want checked. The deploy stops on a broken internal
+link, and `.github/workflows/links.yml` checks external links on pull requests, on `main` and every Monday.
+
+### Lighthouse
+
+```bash
+npm run build
+npm run lighthouse   # needs Chrome or Chromium (set CHROME_PATH if it isn't found)
+```
+
+Measures the home page, a post, the feature tour and search three times each on an emulated phone. A
+performance score under 90, or accessibility, best practices or SEO under 100, fails (the search page is
+`noindex` on purpose, so it skips only that SEO check). Byte budgets for JavaScript and the whole page are in
+`lighthouse-budget.json`; the semantic-search model doesn't count, since it only downloads when someone searches
+by meaning. Reports are saved in `.lighthouseci/` and uploaded by CI. The deploy waits for this check.
+
+### Visual regression
+
+```bash
+npm run test:visual
+```
+
+Takes screenshots of twelve pages in light and dark mode on a phone, at 1080p and at 4K, and compares them with
+the ones in `tests/visual/baselines/`. Screenshots are made in the Playwright Docker image by
+`.github/workflows/visual.yml`, so fonts match exactly on every run:
+
+- a new page's screenshots are added to your branch automatically;
+- after a change you meant to make, open **Actions → Visual → Run workflow**, pick your branch and tick
+  **update**. The new screenshots are committed for you;
+- when a check fails, the uploaded `visual-report` shows the old and new screenshots and the difference.
+
+Commit history, 3D models, canvas apps and the footer's year are masked, and nothing is loaded from other sites.
 
 ## Deploying to GitHub Pages
 
