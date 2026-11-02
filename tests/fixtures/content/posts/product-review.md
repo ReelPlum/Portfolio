@@ -2,7 +2,7 @@
 title: Reviewing headphones
 date: 2026-10-30
 description: A post with product boxes.
-tags: [Reviews]
+tags: [Reviews]   # not tagged blog, so the Blog page tests are unaffected: lives at /posts/product-review/
 ---
 
 I used these for a month.

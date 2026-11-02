@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { trackErrors } from './helpers.js';
 
-const POST = 'blog/product-review/';
+const POST = 'posts/product-review/';
 const box = (page) => page.locator('[data-product]').first();
 const visibleStores = (page) => box(page).locator('.product-offer:visible .product-store').allTextContents();
 

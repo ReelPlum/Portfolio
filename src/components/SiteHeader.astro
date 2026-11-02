@@ -3,9 +3,10 @@ import site from '../../site.config.js';
 import Icon from './Icon.astro';
 import SearchBox from './SearchBox.astro';
 import { withBase, isActive } from '../lib/content.js';
+import { tagConfig } from '../lib/queries.js';
 const base = import.meta.env.BASE_URL;
 const path = Astro.url.pathname.replace(base.replace(/\/$/, ''), '') || '/';
-const navIcons = { '/projects/': 'code', '/blog/': 'article', '/about/': 'person', '/contact/': 'mail' };
+const navIcons = { '/about/': 'person', '/contact/': 'mail', '/tags/': 'sell', ...Object.fromEntries(tagConfig.pages.map((p) => [`/${p.path}/`, p.icon])) };
 const onSearchPage = isActive('/search/', path);
 ---
 <header class="site-header">
