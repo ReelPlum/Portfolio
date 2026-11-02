@@ -1,13 +1,23 @@
 ---
 // "On this page": the post's h2 / h3 headings. Only shown when there are at least two.
+// Wide screens show it in the side column; narrower screens get a collapsible menu above the post.
+import Icon from './Icon.astro';
 const { headings = [] } = Astro.props;
-const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const items = headings.filter((h) => (h.depth === 2 || h.depth === 3) && h.slug !== 'footnote-label');
 ---
 {items.length >= 2 && (
-  <nav class="toc" aria-labelledby="toc-title">
-    <h2 id="toc-title" class="aside-title">On this page</h2>
-    <ul>
-      {items.map((h) => <li class={`toc-depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
-    </ul>
-  </nav>
+  <>
+    <details class="toc-mobile" data-icon-trigger>
+      <summary><Icon name="toc" size={20} /><span>On this page</span><Icon name="keyboard_arrow_down" size={20} /></summary>
+      <ul>
+        {items.map((h) => <li class={`toc-depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+      </ul>
+    </details>
+    <nav class="toc" aria-labelledby="toc-title">
+      <h2 id="toc-title" class="aside-title">On this page</h2>
+      <ul>
+        {items.map((h) => <li class={`toc-depth-${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+      </ul>
+    </nav>
+  </>
 )}

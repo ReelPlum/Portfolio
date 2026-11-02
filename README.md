@@ -25,7 +25,15 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - Links between posts and projects with `[[slug]]`, and a "Referenced by" list on each page
 - PDFs (for example Goodnotes exports) shown inline, page by page
 - Live, in-browser project demos from WebAssembly (made for a Rust interpreter that prints to stdout)
-- YouTube, Vimeo, video files and images inside posts
+- YouTube, Vimeo, video files and images inside posts, with a full-screen image viewer and before/after sliders
+- Callouts (note, tip, warning…), footnotes that become margin sidenotes on wide screens, and Mermaid diagrams
+- Numbered equations with `\eqref` links, numbered theorems, definitions and proofs, and `[@key]` citations
+  from BibTeX with a generated reference list
+- Interactive sliders that drive numbers, formulas and function plots live
+- Code diffs, side by side or in one column, from a pasted diff or two files
+- "Updated" dates, reading time, drafts, related posts (picked with the search vectors), heading links,
+  and a collapsible "On this page" on phones
+- Post templates (`npm run new`) and shared snippets
 - Search-engine friendly: static HTML, sitemap, `robots.txt`, RSS, Open Graph tags and JSON-LD structured data
 - Unit tests (Vitest) and browser tests (Playwright), run on every push
 
@@ -56,6 +64,94 @@ cover: /images/my-first-post.png   # optional
 
 Write your post here using normal **Markdown**.
 ```
+
+Add `updated: 2026-11-05` to show "Updated …" next to the date (it is also given to search engines).
+
+### Starting from a template
+
+```sh
+npm run new -- post "My first post"        # src/content/blog/my-first-post.md
+npm run new -- project "Tiny Calc"         # src/content/projects/tiny-calc.md
+npm run new -- tutorial "Writing a lexer"  # any file in templates/ works; math-notes too
+```
+
+New files start as drafts. Edit or add templates in `templates/`; `{{title}}`, `{{date}}` and `{{slug}}`
+are filled in.
+
+### Shared snippets
+
+Text you reuse (a sign-off, an install note, a disclaimer) goes in `src/content/snippets/<name>.md`. Put
+`{{snippet name}}` on its own line in a post to include it. Values fill in `{{placeholders}}` in the snippet:
+
+```markdown
+{{snippet try-the-interpreter what="closures"}}
+```
+
+A missing snippet or value stops the build.
+
+### Callouts
+
+```markdown
+> [!NOTE]
+> Something worth knowing.
+
+> [!WARNING] Your own title
+> Also TIP, IMPORTANT and CAUTION.
+```
+
+### Footnotes and sidenotes
+
+Write footnotes as usual: `text[^name]` and `[^name]: the note`. When the screen is wide enough they sit in
+the margin beside the text; otherwise they are listed at the end of the post.
+
+### Citations
+
+Put BibTeX entries in `src/content/references.bib` (shared by every post), or give a post its own files with
+`bibliography: /files/my.bib` (in `public/`). Cite with `[@key]`, `[@key, p. 12]` or `[@a; @b]`. Citations
+are numbered in order of use and a "References" list is added at the end. An unknown key stops the build.
+
+### Diagrams
+
+````markdown
+```mermaid title="Pipeline"
+graph LR
+  A[Source] --> B[Lexer] --> C[Parser]
+```
+````
+
+Any [Mermaid](https://mermaid.js.org) diagram works. It is drawn in the browser in the page's light or dark
+colours; without JavaScript the source is shown.
+
+### Diffs
+
+````markdown
+```diff lang=rust title="Faster lexer"
+@@ -1,3 +1,3 @@
+-fn add(a: i32) -> i32 {
++fn add(a: i64) -> i64 {
+```
+
+```diff
+from: /code/v1.rs
+to: /code/v2.rs
+```
+````
+
+Readers can switch between side by side and one column (phones start with one column).
+
+### Before / after images
+
+````markdown
+```compare
+before: /images/old.png | Before
+after: /images/new.png | After
+alt: What the images show
+caption: Optional caption
+```
+````
+
+Drag the divider, or focus it and use the arrow keys. Every other image in a post opens full screen when
+clicked, with arrow keys and swipes to move between images.
 
 ### Page
 
@@ -89,6 +185,50 @@ For every $x \in \R^n$, $\norm{x} \ge 0$.
 KaTeX supports `\newcommand`, `\renewcommand`, `\def` and most of what `amsmath` and `amssymb` provide (including
 `\boxed{...}` and `\fbox{text}`), but it can't load packages, so `\usepackage` lines are skipped with a warning
 in the build. Macros never leak from one post into another.
+
+### Numbered equations, theorems and proofs
+
+```markdown
+$$
+E = mc^2 \label{energy}
+$$
+
+As \eqref{energy} shows…               → a link "(1)"
+
+> [!THEOREM] Pythagoras \label{pyth}
+> $a^2 + b^2 = c^2$.
+
+> [!PROOF]
+> …
+
+Theorem \ref{pyth} …                   → a link "1"
+```
+
+Only labelled equations are numbered. `THEOREM`, `LEMMA`, `COROLLARY` and `DEFINITION` share one counter;
+`PROOF` ends with ∎. A reference to a missing label stops the build.
+
+### Sliders
+
+````markdown
+```vars
+a = 1.5 range 0..3 step 0.1 Amplitude
+k = 2 range 1..6 step 1 Frequency
+```
+
+The amplitude is `=a` and twice that is `=2*a`.
+
+$$ y = \var{a} \sin(\var{k} x) $$
+
+```fnplot
+y: a*sin(k*x), a*cos(x)
+x: -pi..pi
+y-range: -3..3
+title: Optional title
+```
+````
+
+Values, formulas and plots update as the sliders move. Expressions can use `+ - * / ^`, `pi`, `e` and
+functions such as `sin`, `exp`, `sqrt` and `abs`. Using a name that isn't a slider stops the build.
 
 ### Code
 
@@ -301,6 +441,11 @@ Search is hybrid:
   by meaning are labelled "Similar meaning" and show the paragraph that matched best. To use a smaller model, set
   `SEARCH_MODEL=Xenova/all-MiniLM-L6-v2` (about 23 MB) in the deploy step, or add another entry to
   `EMBED_MODELS` in `src/lib/search.js`.
+
+### Related posts
+
+Each post and project also lists three related posts or projects at the end, picked with the same
+document vectors.
 
 ## Settings
 

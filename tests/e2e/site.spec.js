@@ -91,7 +91,7 @@ test.describe('animated icons, and nothing else moves', () => {
   });
 
   test('every icon on the site has an animation', async ({ page }) => {
-    for (const path of ['', 'projects/tiny-calc/', 'contact/', 'search/?q=rust']) {
+    for (const path of ['', 'projects/tiny-calc/', 'contact/', 'search/?q=rust', 'blog/writing-features/']) {
       await page.goto(path);
       const missing = await page.$$eval('svg.icon', (els) => els.filter((e) => !e.dataset.anim).map((e) => e.dataset.icon));
       expect(missing).toEqual([]);
@@ -99,7 +99,7 @@ test.describe('animated icons, and nothing else moves', () => {
   });
 
   test('only icons animate: no transitions, scroll effects or transforms elsewhere', async ({ page }) => {
-    for (const path of ['', 'blog/hello-world/', 'projects/tiny-calc/']) {
+    for (const path of ['', 'blog/hello-world/', 'projects/tiny-calc/', 'blog/writing-features/']) {
       await page.goto(path);
       await page.mouse.wheel(0, 2000);
       const moving = await page.$$eval('body *', (els) => els

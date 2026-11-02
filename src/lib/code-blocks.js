@@ -146,3 +146,16 @@ export function tableBlockHtml(text, { lang = 'csv', title, href, icons = {} } =
     + `<div class="table-scroll" tabindex="0"><table><thead><tr>${head.map((h, i) => cell('th', h, i)).join('')}</tr></thead>`
     + `<tbody>${body.map((r) => `<tr>${head.map((_, i) => cell('td', r[i], i)).join('')}</tr>`).join('')}</tbody></table></div></figure>`;
 }
+
+/** Highlights code and returns one HTML string per line (spans with light and dark colours). */
+export async function highlightLines(code, lang) {
+  const info = PLAIN.has(String(lang || '').toLowerCase()) ? null : languageInfo(lang);
+  const id = info && bundledLanguages[info.id] ? info.id : 'text';
+  const hl = await highlighter(id);
+  if (id === 'text') return code.split('\n').map(esc);
+  const { tokens } = hl.codeToTokens(code, { lang: id, themes: THEMES });
+  return tokens.map((line) => line.map((t) => {
+    const style = Object.entries(t.htmlStyle || {}).map(([k, v]) => `${k}:${v}`).join(';');
+    return style ? `<span style="${style}">${esc(t.content)}</span>` : esc(t.content);
+  }).join(''));
+}

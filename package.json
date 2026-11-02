@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:all": "vitest run && playwright test"
+    "test:all": "vitest run && playwright test",
+    "new": "node scripts/new.js"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "^7.3.5",
@@ -18,6 +19,9 @@
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@bjorn3/browser_wasi_shim": "^0.4.2",
+    "@citation-js/core": "^0.7.21",
+    "@citation-js/plugin-bibtex": "^0.7.21",
+    "@citation-js/plugin-csl": "^0.7.22",
     "@fontsource-variable/inter": "^5.3.0",
     "@fontsource-variable/roboto-flex": "^5.3.0",
     "@google/model-viewer": "^4.4.0",
@@ -25,11 +29,16 @@
     "@material-symbols/svg-400": "^0.48.2",
     "@observablehq/plot": "^0.6.17",
     "astro": "^7.4.4",
+    "diff": "^9.0.0",
     "fuse.js": "^7.5.0",
+    "github-slugger": "^2.0.0",
+    "hast-util-to-string": "^3.0.1",
     "katex": "^0.19.1",
     "linkedom": "^0.18.15",
+    "mermaid": "^12.2.0",
     "pdfjs-dist": "^6.5.438",
     "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "shiki": "^4.5.0",
     "unist-util-visit": "^5.2.0"
@@ -47,5 +56,10 @@
   },
   "engines": {
     "node": ">=22.23.4"
+  },
+  "overrides": {
+    "rehype-katex": {
+      "katex": "$katex"
+    }
   }
 }

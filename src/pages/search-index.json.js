@@ -5,15 +5,18 @@ import { preambleFromMarkdown } from '../lib/latex.js';
 import { REF_RE, buildTargets, resolveRef } from '../lib/references.js';
 import { join } from 'node:path';
 import { withBase } from '../lib/content.js';
+import { expandSnippetText } from '../lib/snippets.js';
 
-const targets = buildTargets(join(process.cwd(), process.env.CONTENT_DIR || 'src/content'));
+const contentDir = join(process.cwd(), process.env.CONTENT_DIR || 'src/content');
+const targets = buildTargets(contentDir);
+const snippetDir = join(contentDir, 'snippets');
 const refText = (ref, text) => {
   if (text) return text;
   try { return resolveRef(ref, targets).title; } catch { return ref; }
 };
 // Macros the post defines, so formulas in search results render the same as in the post.
 const preamble = (body) => preambleFromMarkdown(body, MATH_RE) || undefined;
-const plain = (body) => markdownToText(String(body || '').replace(REF_RE, (_, ref, text) => refText(ref, text)));
+const plain = (body) => markdownToText(expandSnippetText(String(body || ''), snippetDir).replace(REF_RE, (_, ref, text) => refText(ref, text)));
 
 export async function GET() {
   const base = import.meta.env.BASE_URL;

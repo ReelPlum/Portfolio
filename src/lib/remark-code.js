@@ -4,7 +4,44 @@ import { visit } from 'unist-util-visit';
 import { codeBlockHtml, tableBlockHtml, parseInclude, sliceLines, metaTitle } from './code-blocks.js';
 import { iconSvg } from './icons.js';
 import { renderPlotBlock } from './plot.js';
+import { parseFileDiff, parseUnifiedDiff, diffTexts, diffBlockHtml } from './diff-blocks.js';
+import { languageForFile } from './code-blocks.js';
+import { parseCompare, compareHtml } from './compare.js';
 import { withBase } from './content.js';
+
+const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/** A Mermaid diagram: the source is in the page (readable without JavaScript) and drawn in the browser. */
+export function mermaidHtml(source, title) {
+  const caption = title ? `<figcaption>${esc(title)}</figcaption>` : '';
+  return `<figure class="mermaid-block" data-mermaid${title ? ` aria-label="${esc(title)}"` : ''}><pre class="mermaid-source">${esc(source.trim())}</pre><div class="mermaid-diagram" hidden></div>${caption}</figure>`;
+}
+
+const metaLang = (meta) => /(?:^|\s)lang=(\S+)/.exec(meta || '')?.[1];
+
+/** A ```diff block: a pasted unified diff, or "from:" / "to:" naming two files in public/. */
+async function diffJob(node, file, publicDirs) {
+  const where = file?.path ? ` (in ${file.path})` : '';
+  try {
+    const spec = parseFileDiff(node.value);
+    if (spec) {
+      const read = (p) => {
+        const dir = publicDirs.find((d) => existsSync(join(d, p)));
+        if (!dir) throw new Error(`File not found: ${p}. Put it in public${p}`);
+        return readFileSync(join(dir, p), 'utf8');
+      };
+      const hunks = diffTexts(read(spec.from), read(spec.to), spec.context ? Number(spec.context) : 3);
+      const lang = spec.lang || metaLang(node.meta) || languageForFile(spec.to);
+      const title = spec.title || metaTitle(node.meta) || `${spec.from.split('/').pop()} → ${spec.to.split('/').pop()}`;
+      return diffBlockHtml(hunks, { lang, title });
+    }
+    const { file: name, hunks } = parseUnifiedDiff(node.value);
+    const lang = metaLang(node.meta) || (name ? languageForFile(name) : null);
+    return diffBlockHtml(hunks, { lang, title: metaTitle(node.meta) || name });
+  } catch (e) {
+    throw new Error(`Diff: ${e.message}${where}`);
+  }
+}
 
 const SKIP_LANGS = new Set(['math', 'preamble', 'latex-preamble']);
 
@@ -50,6 +87,24 @@ export function remarkCode({ publicDirs = ['public'], base = '/' } = {}) {
     });
     visit(tree, 'code', (node, index, parent) => {
       if (!parent || SKIP_LANGS.has((node.lang || '').toLowerCase())) return;
+      if ((node.lang || '').toLowerCase() === 'diff') {
+        const replacement = { type: 'html', value: '' };
+        parent.children[index] = replacement;
+        jobs.push(diffJob(node, file, publicDirs).then((h) => { replacement.value = h; }));
+        return;
+      }
+      if ((node.lang || '').toLowerCase() === 'compare') {
+        try {
+          parent.children[index] = { type: 'html', value: compareHtml(parseCompare(node.value), { publicDirs, hrefFor: (p) => withBase(p, base) }) };
+        } catch (e) {
+          throw new Error(`Compare: ${e.message}${file?.path ? ` (in ${file.path})` : ''}`);
+        }
+        return;
+      }
+      if ((node.lang || '').toLowerCase() === 'mermaid') {
+        parent.children[index] = { type: 'html', value: mermaidHtml(node.value, metaTitle(node.meta)) };
+        return;
+      }
       if ((node.lang || '').toLowerCase() === 'plot') {
         try {
           parent.children[index] = { type: 'html', value: renderPlotBlock(node.value, { publicDirs, hrefFor: (p) => withBase(p, base) }) };

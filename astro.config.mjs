@@ -10,6 +10,13 @@ import { remarkReferences } from './src/lib/remark-references.js';
 import { rehypeBaseUrls } from './src/lib/rehype-base-urls.js';
 import { remarkLatexPreamble, rehypeKatexPerPost } from './src/lib/remark-latex-preamble.js';
 import { remarkCode } from './src/lib/remark-code.js';
+import { remarkCallouts } from './src/lib/remark-callouts.js';
+import { remarkCitations } from './src/lib/citations.js';
+import { remarkSnippets } from './src/lib/snippets.js';
+import { remarkLiveVars } from './src/lib/live-vars.js';
+import { remarkMathRefs } from './src/lib/remark-math-refs.js';
+import { rehypeHeadingAnchors } from './src/lib/rehype-heading-anchors.js';
+import { rehypeSidenotes } from './src/lib/rehype-sidenotes.js';
 import { rehypeDownloadLinks } from './src/lib/rehype-download-links.js';
 import { rehypeExternalLinks } from './src/lib/rehype-external-links.js';
 import { buildTargets } from './src/lib/references.js';
@@ -43,8 +50,8 @@ export default defineConfig({
   integrations: [mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings()],
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkLatexPreamble, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
-      rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }], [rehypeDownloadLinks, { publicDirs, base }]],
+      remarkPlugins: [[remarkSnippets, { dir: fileURLToPath(new URL(`./${contentDir}/snippets/`, import.meta.url)) }], remarkLatexPreamble, remarkLiveVars, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }], remarkCallouts, remarkMathRefs, [remarkCitations, { contentDir: fileURLToPath(new URL(`./${contentDir}/`, import.meta.url)), publicDirs }]],
+      rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }], [rehypeDownloadLinks, { publicDirs, base }], rehypeSidenotes, rehypeHeadingAnchors],
     }),
     // Code blocks are highlighted by src/lib/remark-code.js (adds the language label and copy button).
     syntaxHighlight: false,
