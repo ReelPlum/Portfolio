@@ -100,7 +100,7 @@ export function renderResults(list, results, query, { limit = Infinity, icons = 
     a.dataset.iconTrigger = '';
     const head = el('div', 'search-result-head');
     const type = el('span', 'search-type');
-    type.innerHTML = r.doc.type === 'Project' ? icons.project || '' : icons.post || '';
+    type.innerHTML = icons[`type:${r.doc.icon}`] || (r.doc.type === 'Project' ? icons.project : icons.post) || '';
     type.append(r.doc.type);
     head.append(type);
     if (r.doc.date) head.append(el('span', 'search-date', formatDate(r.doc.date)));

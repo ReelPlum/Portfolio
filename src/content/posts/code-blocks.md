@@ -2,7 +2,7 @@
 title: Showing code on this site
 date: 2026-11-01
 description: Highlighted code blocks in any language, with a label, a file name and a copy button, plus code pulled straight from a source file.
-tags: [Meta, Code]
+tags: [blog, Meta, Code]
 ---
 
 Every code block on this site shows which language it is, can show a file name, and has a copy button in

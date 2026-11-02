@@ -1,8 +1,8 @@
 ---
 title: Tiny Calc
-summary: A tiny calculator language in about 150 lines of Rust. Runs live in the browser through WASI.
+description: A tiny calculator language in about 150 lines of Rust. Runs live in the browser through WASI.
 date: 2026-10-01
-tags: [Rust, WASI]
+tags: [project, Rust, WASI]
 cover: /images/tiny-calc.svg
 source: https://github.com/ReelPlum/Portfolio/tree/main/tests/fixtures/tiny-calc
 demo:
