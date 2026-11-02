@@ -64,13 +64,17 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
     <SiteFooter />
     <template id="ui-icons"><Icon name="close" /><Icon name="chevron_left" /><Icon name="chevron_right" /></template>
     <script>
-      // Only pages with an embedded PDF download the PDF renderer.
-      if (document.querySelector('[data-pdf]')) import('../lib/pdf-viewer.js').then((m) => m.renderAllPdfs());
-      // 3D models and WebAssembly canvas apps load their code only on pages that have one.
-      if (document.querySelector('[data-model]')) import('@google/model-viewer');
+      import { whenNear, setupVideoFacades } from '../lib/lazy-client.js';
+      const all = (selector) => document.querySelectorAll(selector);
+      // Heavy code (the PDF renderer, the 3D viewer, diagrams) loads only on pages that need it, and only
+      // when the embed comes close to the screen.
+      whenNear(all('[data-pdf]'), () => import('../lib/pdf-viewer.js').then((m) => m.renderAllPdfs()));
+      whenNear(all('[data-model]'), () => import('@google/model-viewer'));
+      // YouTube and Vimeo load nothing until play is pressed.
+      if (document.querySelector('[data-video-embed]')) setupVideoFacades();
       if (document.querySelector('.prose')) import('../lib/post-client.js').then((m) => { m.setupAnchors(); m.setupDiffs(); m.setupCompare(); m.setupLightbox(); });
       if (document.querySelector('[data-live-vars]')) import('../lib/live-vars-client.js').then((m) => m.setupLiveVars());
-      if (document.querySelector('[data-mermaid]')) import('../lib/mermaid-client.js').then((m) => m.renderMermaid());
+      whenNear(all('[data-mermaid]'), () => import('../lib/mermaid-client.js').then((m) => m.renderMermaid()));
       if (document.querySelector('[data-canvas]')) import('../lib/canvas-embed.js').then((m) => m.setupCanvases());
       // Copy buttons on code blocks.
       document.addEventListener('click', async (event) => {

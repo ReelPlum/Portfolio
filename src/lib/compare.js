@@ -9,6 +9,7 @@
 // screen readers work without extra code. Without JavaScript both images are still shown, side by side.
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { PROSE_SIZES } from './images.js';
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -30,14 +31,21 @@ export function parseCompare(value) {
   return spec;
 }
 
-export function compareHtml(spec, { hrefFor = (p) => p, publicDirs } = {}) {
+/** `images` maps an image's path to its imageInfo() (size and AVIF / WebP sources), when known. */
+export function compareHtml(spec, { hrefFor = (p) => p, publicDirs, images = {} } = {}) {
   if (publicDirs) {
     for (const { src } of [spec.before, spec.after]) {
       if (src.startsWith('/') && !publicDirs.some((d) => existsSync(join(d, src)))) throw new Error(`Image not found: ${src}. Put it in public${src}`);
     }
   }
   const alt = spec.alt || `${spec.before.label} and ${spec.after.label}`;
-  const img = (s, cls) => `<img class="${cls}" src="${esc(hrefFor(s.src))}" alt="${esc(`${s.label}: ${alt}`)}" loading="lazy" decoding="async" data-no-lightbox />`;
+  const img = (s, cls) => {
+    const info = images[s.src];
+    const size = info ? ` width="${info.width}" height="${info.height}"` : '';
+    const tag = `<img class="${cls}" src="${esc(hrefFor(s.src))}" alt="${esc(`${s.label}: ${alt}`)}"${size} loading="lazy" decoding="async" data-no-lightbox />`;
+    if (!info?.sources?.length) return tag;
+    return `<picture class="${cls}-picture">${info.sources.map((x) => `<source type="${x.type}" srcset="${esc(x.srcset)}" sizes="${PROSE_SIZES}" />`).join('')}${tag}</picture>`;
+  };
   return `<figure class="compare" data-compare style="--pos:${spec.start}%">`
     + `<div class="compare-frame">${img(spec.before, 'compare-before')}${img(spec.after, 'compare-after')}`
     + `<span class="compare-label compare-label-before" aria-hidden="true">${esc(spec.before.label)}</span><span class="compare-label compare-label-after" aria-hidden="true">${esc(spec.after.label)}</span>`

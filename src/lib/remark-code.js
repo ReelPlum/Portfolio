@@ -7,6 +7,7 @@ import { renderPlotBlock } from './plot.js';
 import { parseFileDiff, parseUnifiedDiff, diffTexts, diffBlockHtml } from './diff-blocks.js';
 import { languageForFile } from './code-blocks.js';
 import { parseCompare, compareHtml } from './compare.js';
+import { imageInfo } from './images.js';
 import { withBase } from './content.js';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -58,7 +59,7 @@ function soleText(node) {
  * Highlights every fenced code block, and turns a path to a source file on its own line into a code
  * block. A missing file or bad line range fails the build, so a post never shows a broken include.
  */
-export function remarkCode({ publicDirs = ['public'], base = '/' } = {}) {
+export function remarkCode({ publicDirs = ['public'], base = '/', variants = process.env.NODE_ENV === 'production' } = {}) {
   return async (tree, file) => {
     const jobs = [];
     visit(tree, 'paragraph', (node, index, parent) => {
@@ -94,11 +95,17 @@ export function remarkCode({ publicDirs = ['public'], base = '/' } = {}) {
         return;
       }
       if ((node.lang || '').toLowerCase() === 'compare') {
-        try {
-          parent.children[index] = { type: 'html', value: compareHtml(parseCompare(node.value), { publicDirs, hrefFor: (p) => withBase(p, base) }) };
-        } catch (e) {
-          throw new Error(`Compare: ${e.message}${file?.path ? ` (in ${file.path})` : ''}`);
-        }
+        const fail = (e) => { throw new Error(`Compare: ${e.message}${file?.path ? ` (in ${file.path})` : ''}`); };
+        let spec;
+        try { spec = parseCompare(node.value); } catch (e) { fail(e); }
+        const replacement = { type: 'html', value: '' };
+        parent.children[index] = replacement;
+        const hrefFor = (p) => withBase(p, base);
+        jobs.push((async () => {
+          const images = {};
+          for (const { src } of [spec.before, spec.after]) images[src] = await imageInfo(src, { publicDirs, hrefFor, variants });
+          try { replacement.value = compareHtml(spec, { publicDirs, hrefFor, images }); } catch (e) { fail(e); }
+        })());
         return;
       }
       if ((node.lang || '').toLowerCase() === 'mermaid') {

@@ -45,8 +45,8 @@ test.describe('pages', () => {
 test.describe('blog content', () => {
   test('YouTube, Vimeo and images render inside posts', async ({ page }) => {
     await page.goto('blog/hello-world/');
-    await expect(page.locator('figure.embed-youtube iframe')).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/aqz-KE-bpKQ/);
-    await expect(page.locator('figure.embed-vimeo iframe')).toHaveAttribute('src', 'https://player.vimeo.com/video/76979871');
+    await expect(page.locator('figure.embed-youtube')).toHaveAttribute('data-src', /youtube-nocookie\.com\/embed\/aqz-KE-bpKQ/);
+    await expect(page.locator('figure.embed-vimeo')).toHaveAttribute('data-src', 'https://player.vimeo.com/video/76979871');
     const img = page.locator('.prose img[alt="Mountains at dusk"]');
     await expect(img).toBeVisible();
     expect(await img.evaluate((i) => i.naturalWidth)).toBeGreaterThan(0);
@@ -134,6 +134,7 @@ test.describe('LaTeX, references and PDFs', () => {
   test('a PDF link on its own line renders every page', async ({ page }) => {
     await page.goto('blog/hello-world/');
     const pdf = page.locator('[data-pdf]');
+    await pdf.scrollIntoViewIfNeeded(); // the renderer loads when the PDF comes near the screen
     await expect(pdf).toHaveAttribute('data-pages', '2', { timeout: 15000 });
     await expect(pdf.locator('canvas.pdf-page')).toHaveCount(2);
     await expect(pdf.getByRole('link', { name: 'lecture-notes.pdf' })).toHaveAttribute('href', /\/files\/lecture-notes\.pdf$/);

@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import Backlinks from '../../components/Backlinks.astro';
 import Toc from '../../components/Toc.astro';
+import Picture from '../../components/Picture.astro';
 import Byline from '../../components/Byline.astro';
 import Share from '../../components/Share.astro';
 import History from '../../components/History.astro';
@@ -44,7 +45,7 @@ const ld = blogPostingLd({ title, description, date, updated, url, image: cover 
       <Toc headings={headings} />
     </aside>
     <div class="article-main">
-      {cover && <img class="article-cover" src={withBase(cover, base)} alt="" />}
+      {cover && <Picture class="article-cover" src={cover} sizes="(min-width: 1600px) 880px, (min-width: 800px) 780px, 100vw" eager />}
       <div class="prose">
         <Content />
       </div>

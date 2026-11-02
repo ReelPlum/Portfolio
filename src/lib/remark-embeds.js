@@ -24,8 +24,8 @@ function soleUrl(node) {
   return null;
 }
 
-export function remarkEmbeds({ base = '/', publicDirs = [] } = {}) {
-  const icons = { download: iconSvg('download', { size: 18 }), run: iconSvg('play_arrow', { size: 18 }), soon: iconSvg('deployed_code', { size: 36 }) };
+export function remarkEmbeds({ base = '/', publicDirs = [], optimizeModels = process.env.NODE_ENV === 'production' } = {}) {
+  const icons = { download: iconSvg('download', { size: 18 }), run: iconSvg('play_arrow', { size: 18 }), soon: iconSvg('deployed_code', { size: 36 }), play: iconSvg('play_arrow', { size: 40 }) };
   return (tree) => {
     visit(tree, 'paragraph', (node, index, parent) => {
       if (!parent || index == null) return;
@@ -36,6 +36,10 @@ export function remarkEmbeds({ base = '/', publicDirs = [] } = {}) {
       // A canvas app shows a placeholder until its build is in public/.
       const missing = embed.provider === 'canvas' && publicDirs.length > 0 && !publicDirs.some((d) => existsSync(join(d, embed.src)));
       embed.publicPath = embed.src;
+      // Models are viewed from a compressed copy made after the build; the download stays the original.
+      if (embed.provider === 'model' && optimizeModels && embed.src.startsWith('/') && !embed.src.startsWith('//')) {
+        embed.viewSrc = withBase(`/_opt${embed.src}`, base);
+      }
       // Embeds become raw HTML, which later URL rewriting can't see, so add the base path here.
       if (embed.src.startsWith('/') && !embed.src.startsWith('//') && !embed.src.startsWith(base)) embed.src = withBase(embed.src, base);
       parent.children[index] = { type: 'html', value: embedHtml(embed, found.title, { icons, missing }) };

@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import StatusBadge from './StatusBadge.astro';
+import Picture from './Picture.astro';
 import { withBase } from '../lib/content.js';
 const { project, size = 'normal' } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -9,7 +10,7 @@ const href = withBase(`/projects/${project.id}/`, base);
 ---
 <article class={`project-card project-card--${size}`}>
   <a href={href} class="project-card-link" data-icon-trigger>
-    {cover && <div class="project-card-media"><img src={withBase(cover, base)} alt="" loading="lazy" decoding="async" /></div>}
+    {cover && <div class="project-card-media"><Picture src={cover} sizes={size === 'large' ? '(min-width: 900px) 60vw, 100vw' : '(min-width: 900px) 33vw, 100vw'} /></div>}
     <div class="project-card-body">
       {status && <StatusBadge status={status} />}
       <h3>{title}</h3>

@@ -21,15 +21,19 @@ const render = async (md, base = '/') => String(await unified()
   .use(rehypeBaseUrls, { base }).use(rehypeStringify).process(md));
 
 describe('remarkEmbeds', () => {
-  it('turns a bare YouTube URL on its own line into a player', async () => {
+  it('turns a bare YouTube URL on its own line into a player that loads on play', async () => {
     const html = await render('Intro\n\nhttps://www.youtube.com/watch?v=aqz-KE-bpKQ\n\nOutro');
-    expect(html).toContain('<iframe src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ"');
+    expect(html).toContain('data-src="https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ"');
+    expect(html).toContain('class="embed-facade" aria-label="Play YouTube video (loads YouTube)"');
+    // The player itself is only there for readers without JavaScript.
+    expect(html).toMatch(/<noscript><iframe src="https:\/\/www\.youtube-nocookie\.com\/embed\/aqz-KE-bpKQ"/);
+    expect(html.replace(/<noscript>.*?<\/noscript>/s, '')).not.toContain('<iframe');
     expect(html).toContain('<p>Intro</p>');
   });
   it('handles autolinks and titled links', async () => {
     expect(await render('<https://vimeo.com/76979871>')).toContain('player.vimeo.com/video/76979871');
     const html = await render('[My talk](https://youtu.be/aqz-KE-bpKQ)');
-    expect(html).toContain('title="My talk"');
+    expect(html).toContain('data-title="My talk"');
   });
   it('leaves links inside sentences alone', async () => {
     const html = await render('Watch https://youtu.be/aqz-KE-bpKQ now');

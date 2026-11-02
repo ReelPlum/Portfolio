@@ -17,6 +17,8 @@ Welcome to my new site. Every post is a markdown file in `src/content/blog/`.
 
 ![Mountains at dusk](/images/sample-photo.svg)
 
+![A lit sphere](/images/sphere-lit.png)
+
 ## Video
 
 Paste a YouTube or Vimeo link on its own line and it becomes a player:

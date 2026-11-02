@@ -83,7 +83,8 @@ export function embedHtml(embed, title = '', { icons = {}, missing = false } = {
   if (embed.provider === 'model') {
     // <model-viewer> (loaded only on pages that have a model) lets you drag to rotate and scroll to zoom.
     const name = title || fileName(embed.src);
-    return `<figure class="embed embed-model" data-model><model-viewer src="${esc(embed.src)}" alt="${esc(`3D model: ${name}`)}" camera-controls touch-action="pan-y" interaction-prompt="none" shadow-intensity="0.6" environment-image="neutral" exposure="1"><div slot="progress-bar"></div></model-viewer>`
+    // `viewSrc` is a size-optimised copy for viewing (src/lib/optimize-assets.js); downloads get the original.
+    return `<figure class="embed embed-model" data-model><model-viewer src="${esc(embed.viewSrc || embed.src)}" loading="lazy" reveal="auto" alt="${esc(`3D model: ${name}`)}" camera-controls touch-action="pan-y" interaction-prompt="none" shadow-intensity="0.6" environment-image="neutral" exposure="1"><div slot="progress-bar"></div></model-viewer>`
       + `<figcaption><span>${esc(name)}</span><span class="embed-hint">Drag to rotate, scroll or pinch to zoom</span><a href="${esc(embed.src)}" download>${icons.download || ''}Download</a></figcaption></figure>`;
   }
   if (embed.provider === 'canvas') {
@@ -101,8 +102,19 @@ export function embedHtml(embed, title = '', { icons = {}, missing = false } = {
     return `<figure class="embed embed-pdf" data-pdf><div class="pdf-pages"></div><figcaption><a href="${esc(embed.src)}" target="_blank" rel="noopener">${esc(name)}</a></figcaption></figure>`;
   }
   if (embed.provider === 'video') {
-    return `<figure class="embed embed-video"><video src="${esc(embed.src)}" controls playsinline preload="metadata"></video></figure>`;
+    return `<figure class="embed embed-video"><video src="${esc(embed.src)}" controls playsinline preload="none"></video></figure>`;
   }
   const label = title || (embed.provider === 'youtube' ? 'YouTube video' : 'Vimeo video');
-  return `<figure class="embed embed-${embed.provider}"><iframe src="${esc(embed.src)}" title="${esc(label)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></figure>`;
+  // Nothing loads from YouTube / Vimeo until the reader presses play (src/lib/post-client.js swaps in the
+  // player). Without JavaScript the player is shown straight away.
+  const site = embed.provider === 'youtube' ? 'YouTube' : 'Vimeo';
+  return `<figure class="embed embed-${embed.provider}" data-video-embed data-src="${esc(embed.src)}" data-title="${esc(label)}">`
+    + `<button type="button" class="embed-facade" aria-label="${esc(`Play ${label} (loads ${site})`)}">${icons.play || ''}<span class="embed-facade-title">${esc(label)}</span><span class="embed-facade-note">Plays from ${site}</span></button>`
+    + `<noscript>${playerIframe(embed.src, label)}</noscript></figure>`;
+}
+
+/** The YouTube / Vimeo player itself. */
+export function playerIframe(src, label, { autoplay = false } = {}) {
+  const url = autoplay ? `${src}${src.includes('?') ? '&' : '?'}autoplay=1` : src;
+  return `<iframe src="${esc(url)}" title="${esc(label)}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
 }

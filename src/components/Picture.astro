@@ -1,0 +1,14 @@
+---
+// An image from public/ with AVIF / WebP variants, its size and lazy loading (see src/lib/images.js).
+import { join } from 'node:path';
+import { imageInfo } from '../lib/images.js';
+import { withBase } from '../lib/content.js';
+const { src, alt = '', sizes = '100vw', class: className, eager = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const publicDirs = [join(process.cwd(), 'public'), ...(process.env.EXTRA_PUBLIC_DIR ? [process.env.EXTRA_PUBLIC_DIR] : [])];
+const info = await imageInfo(src, { publicDirs, variants: import.meta.env.PROD, hrefFor: (p) => withBase(p, base) });
+---
+<picture>
+  {info?.sources.map((s) => <source type={s.type} srcset={s.srcset} sizes={sizes} />)}
+  <img class={className} src={withBase(src, base)} alt={alt} width={info?.width} height={info?.height} loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} />
+</picture>
