@@ -13,6 +13,9 @@ export default {
   // Privacy-friendly visitor counts with GoatCounter (https://www.goatcounter.com): set your site code, e.g.
   // 'frederik' for frederik.goatcounter.com. Left empty, no analytics script is added.
   goatcounter: '',
+  // npm run check:links -- --external skips URLs matching these (regular expressions as strings), e.g. sites
+  // that block automated requests. Commit pages on GitHub are skipped: there's one for every post change.
+  linkCheck: { skip: ['^https://github\\.com/ReelPlum/Portfolio/commit/'] },
   tagline: 'I build interpreters, tools and things for the web.',
   description: 'Projects, writing and experiments by Frederik.',
   email: 'hello@example.com', // TODO: your address. Shown on the contact page as a mailto: link

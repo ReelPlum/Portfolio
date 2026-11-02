@@ -87,6 +87,11 @@ jobs:
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SEARCH_EMBEDDINGS: required
           RENDERS: required
+      # Never deploy a broken internal link, image or embed (other sites are checked in links.yml).
+      - run: npm run check:links
+        env:
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          SITE_URL: ${{ steps.pages.outputs.origin }}
       # One artifact name per attempt: re-running the job keeps the earlier attempt's
       # artifact, and deploy-pages refuses to choose between two with the same name.
       - uses: actions/upload-pages-artifact@v5

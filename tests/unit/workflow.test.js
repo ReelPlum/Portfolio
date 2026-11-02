@@ -65,3 +65,34 @@ describe('deploy builds', () => {
     expect(deploySteps[build].env.RENDERS).toBe('required');
   });
 });
+
+describe('link checks', () => {
+  const links = parse(readFileSync(new URL('../../.github/workflows/links.yml', import.meta.url), 'utf8'));
+  const linkSteps = links.jobs.links.steps;
+  it('the deploy checks internal links, images and embeds after building and before uploading', () => {
+    const deploySteps = workflow.jobs.deploy.steps;
+    const build = deploySteps.findIndex((s) => s.run === 'npm run build');
+    const check = deploySteps.findIndex((s) => s.run === 'npm run check:links');
+    const upload = deploySteps.findIndex((s) => s.uses?.startsWith('actions/upload-pages-artifact@'));
+    expect(build).toBeLessThan(check);
+    expect(check).toBeLessThan(upload);
+    expect(deploySteps[check].env.BASE_PATH).toBe(deploySteps[build].env.BASE_PATH);
+  });
+  it('links to other sites are checked on pull requests, on main and every week', () => {
+    expect(Object.keys(links.on)).toEqual(expect.arrayContaining(['push', 'pull_request', 'schedule', 'workflow_dispatch']));
+    expect(links.on.schedule[0].cron).toMatch(/^\d+ \d+ \* \* \d$/);
+    expect(linkSteps.at(-1).run).toBe('npm run check:links -- --external');
+  });
+  it('builds the real site with its preview images, so links to them are checked too', () => {
+    const install = linkSteps.findIndex((s) => /playwright install .*chromium/.test(s.run || ''));
+    const build = linkSteps.findIndex((s) => s.run === 'npm run build');
+    expect(install).toBeLessThan(build);
+    expect(linkSteps[build].env.RENDERS).toBe('required');
+  });
+  it('uses action versions that run on Node 24', () => {
+    for (const ref of linkSteps.map((s) => s.uses).filter(Boolean)) {
+      const [name, version] = ref.split('@');
+      if (name in MIN_MAJOR) expect(Number(version.replace(/^v/, '')), ref).toBeGreaterThanOrEqual(MIN_MAJOR[name]);
+    }
+  });
+});
