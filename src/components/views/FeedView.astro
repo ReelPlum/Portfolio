@@ -1,0 +1,13 @@
+---
+// A page of posts: one of the `tags.pages` in site.config.js, or the page for a single tag.
+import Base from '../../layouts/Base.astro';
+import PostFeed from '../PostFeed.astro';
+const { title, description, posts, layout } = Astro.props;
+---
+<Base title={title} description={description}>
+  <header class="page-header">
+    <h1>{title}</h1>
+    {description && <p class="lede">{description}</p>}
+  </header>
+  {posts.length ? <PostFeed posts={posts} layout={layout} /> : <p class="empty">Nothing here yet.</p>}
+</Base>

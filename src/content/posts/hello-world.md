@@ -2,12 +2,12 @@
 title: Hello, world
 date: 2026-11-01
 description: The first post on my new site.
-tags: [Meta]
+tags: [blog, Meta]
 ---
 
-This is a starter post. Edit or delete `src/content/blog/hello-world.md` and add your own.
+This is a starter post. Edit or delete `src/content/posts/hello-world.md` and add your own.
 
-Every post is a markdown file in `src/content/blog/`. A few things you can write:
+Every post is a markdown file in `src/content/posts/`. A few things you can write:
 
 - Maths with LaTeX: $e^{i\pi} + 1 = 0$, or on its own line between `$$` and `$$`.
 - A link to another post or project: [[interpreter]] or [[interpreter|custom link text]].

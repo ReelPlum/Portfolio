@@ -78,8 +78,8 @@ test.describe('search', () => {
 
   test('the index and vectors are published, and search is not in the sitemap', async ({ request }) => {
     const index = await (await request.get('search-index.json')).json();
-    expect(index.map((d) => d.id)).toEqual(expect.arrayContaining(['projects/tiny-calc', 'blog/hello-world']));
-    const hello = index.find((d) => d.id === 'blog/hello-world');
+    expect(index.map((d) => d.id)).toEqual(expect.arrayContaining(['posts/tiny-calc', 'posts/hello-world']));
+    const hello = index.find((d) => d.id === 'posts/hello-world');
     expect(hello.body).toContain('$e^{i\\pi} + 1 = 0$');
     expect(hello.body).toContain('Tiny Calc'); // [[tiny-calc]] is indexed as its title
     const vectors = await (await request.get('search-vectors.json')).json();

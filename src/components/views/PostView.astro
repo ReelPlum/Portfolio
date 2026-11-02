@@ -1,0 +1,60 @@
+---
+// One post. Projects are posts too: a `demo` adds the playground, `source` and `link` add buttons.
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Playground from '../Playground.astro';
+import Icon from '../Icon.astro';
+import Backlinks from '../Backlinks.astro';
+import Toc from '../Toc.astro';
+import TagList from '../TagList.astro';
+import { pageOf } from '../../lib/queries.js';
+import { summaryOf } from '../../lib/tags.js';
+import { withBase, formatDate, readingTime } from '../../lib/content.js';
+import { blogPostingLd, projectLd } from '../../lib/seo.js';
+import site from '../../../site.config.js';
+import { linkAttrs } from '../../lib/links.js';
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+const { title, date, tags, demo, source, link, cover } = post.data;
+const description = summaryOf(post) || undefined;
+const page = pageOf(post);
+const base = import.meta.env.BASE_URL;
+const url = new URL(Astro.url.pathname, Astro.site).href;
+const image = cover && new URL(withBase(cover, base), Astro.site).href;
+const isProject = Boolean(demo || source || link);
+const ld = isProject
+  ? projectLd({ title, summary: description, date, url, source, tags, image, author: site.author })
+  : blogPostingLd({ title, description, date, url, image, author: site.author });
+---
+<Base title={title} description={description} image={cover} type="article" published={date} jsonLd={[ld]}>
+  <article class:list={['article article--wide', { 'article--project': isProject }]}>
+    <header class="article-header">
+      <a class="back-link" href={withBase(page ? `/${page.path}/` : '/', base)}><Icon name="arrow_back" size={18} />{page ? page.title : 'Home'}</a>
+      <h1>{title}</h1>
+      {description && <p class="lede">{description}</p>}
+    </header>
+    <aside class="article-aside">
+      <div class="meta">
+        <span><Icon name="calendar_today" size={16} />{formatDate(date)}</span>
+        {!isProject && <span><Icon name="schedule" size={16} />{readingTime(post.body)} min read</span>}
+        <TagList tags={tags} />
+      </div>
+      {(source || link) && (
+        <div class="article-actions">
+          {link && <a class="btn" href={link} {...linkAttrs(link)}><Icon name="open_in_new" size={18} />Visit</a>}
+          {source && <a class="btn btn-tonal" href={source} {...linkAttrs(source)}><Icon name="github" size={16} />View source</a>}
+        </div>
+      )}
+      <Toc headings={headings} />
+    </aside>
+    <div class="article-main">
+      {demo && <Playground demo={demo} title={title} />}
+      {!demo && cover && <img class="article-cover" src={withBase(cover, base)} alt="" />}
+      <div class="prose">
+        <Content />
+      </div>
+      <Backlinks id={`posts/${post.id}`} />
+    </div>
+  </article>
+</Base>

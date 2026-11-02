@@ -6,20 +6,6 @@ export function sortByDateDesc(entries) {
   return [...entries].sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
 }
 
-/** Featured first, then by explicit order (lower first), then newest. */
-export function sortProjects(entries) {
-  return [...entries].sort((a, b) =>
-    Number(b.data.featured) - Number(a.data.featured)
-    || (a.data.order ?? 0) - (b.data.order ?? 0)
-    || new Date(b.data.date) - new Date(a.data.date));
-}
-
-export function allTags(entries) {
-  const counts = new Map();
-  for (const e of entries) for (const t of e.data.tags || []) counts.set(t, (counts.get(t) || 0) + 1);
-  return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([tag, count]) => ({ tag, count }));
-}
-
 export function formatDate(date, locale = 'en-GB') {
   return new Date(date).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 }
