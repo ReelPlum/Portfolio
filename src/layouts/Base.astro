@@ -4,6 +4,8 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Icon from '../components/Icon.astro';
 import { ldJson, absolute } from '../lib/seo.js';
+import { goatcounterUrl } from '../lib/analytics.js';
+import { ogImagePath } from '../lib/og.js';
 import '@fontsource-variable/roboto-flex';
 import 'katex/dist/katex.min.css';
 import '../styles/base.css';
@@ -11,10 +13,13 @@ import '../styles/icons.css';
 import '../styles/site.css';
 
 const { title, description = site.description, image, type = 'website', published, modified, jsonLd = [], noindex = false } = Astro.props;
+// GoatCounter: privacy-friendly counts, only on the built site and only when a site code is set.
+const goatcounter = import.meta.env.PROD ? goatcounterUrl(site.goatcounter) : null;
 const fullTitle = title ? `${title} · ${site.title}` : site.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const base = import.meta.env.BASE_URL;
-const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base) ? base.replace(/\/$/, '') + image : image, Astro.site) : null;
+// Every page has a preview image: the post's cover, its generated card, or the site's card (src/lib/og.js).
+const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base) ? base.replace(/\/$/, '') + image : image, Astro.site) : absolute(base.replace(/\/$/, '') + ogImagePath(null), Astro.site);
 ---
 <!doctype html>
 <html lang="en">
@@ -35,16 +40,20 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:locale" content="en_US" />
-    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:image" content={ogImage} />
+    {!image || ogImage.includes('/og/') ? <><meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" /></> : null}
     {published && <meta property="article:published_time" content={new Date(published).toISOString()} />}
     {modified && <meta property="article:modified_time" content={new Date(modified).toISOString()} />}
-    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     {jsonLd.map((d) => <script type="application/ld+json" set:html={ldJson(d)} />)}
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#131314" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
+    {goatcounter && (
+      <script is:inline data-goatcounter={goatcounter} async src="https://gc.zgo.at/count.js"></script>
+    )}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

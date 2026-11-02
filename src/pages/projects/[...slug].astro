@@ -5,7 +5,12 @@ import Playground from '../../components/Playground.astro';
 import Icon from '../../components/Icon.astro';
 import Backlinks from '../../components/Backlinks.astro';
 import Toc from '../../components/Toc.astro';
+import Byline from '../../components/Byline.astro';
+import Share from '../../components/Share.astro';
+import History from '../../components/History.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
 import { getProjects } from '../../lib/queries.js';
+import { ogImagePath } from '../../lib/og.js';
 import { withBase, formatDate, readingTime, updatedDate } from '../../lib/content.js';
 import { projectLd } from '../../lib/seo.js';
 import site from '../../../site.config.js';
@@ -16,22 +21,24 @@ export async function getStaticPaths() {
 }
 const { project } = Astro.props;
 const { Content, headings } = await render(project);
-const { title, summary, tags, date, demo, source, link, cover, draft } = project.data;
+const { title, summary, tags, date, demo, source, link, cover, draft, status } = project.data;
 const updated = updatedDate(project.data);
 const base = import.meta.env.BASE_URL;
 const url = new URL(Astro.url.pathname, Astro.site).href;
 const ld = projectLd({ title, summary, date, updated, url, source, tags, image: cover && new URL(withBase(cover, base), Astro.site).href, author: site.author });
 ---
-<Base title={title} description={summary} image={cover} type="article" published={date} modified={updated} jsonLd={[ld]}>
+<Base title={title} description={summary} image={cover || ogImagePath(`projects/${project.id}`)} type="article" published={date} modified={updated} jsonLd={[ld]}>
   <article class="article article--wide article--project">
     <header class="article-header">
       <a class="back-link" href={withBase('/projects/', base)}><Icon name="arrow_back" size={18} />Projects</a>
       {draft && <p class="draft-badge">Draft: only visible in <code>npm run dev</code></p>}
       <h1>{title}</h1>
       <p class="lede">{summary}</p>
+      <Byline entry={project} />
     </header>
     <aside class="article-aside">
       <div class="meta">
+        <StatusBadge status={status} />
         <span><Icon name="calendar_today" size={16} /><time datetime={date.toISOString()}>{formatDate(date)}</time></span>
         {updated && <span class="meta-updated"><Icon name="update" size={16} />Updated <time datetime={updated.toISOString()}>{formatDate(updated)}</time></span>}
         <span><Icon name="schedule" size={16} />{readingTime(project.body)} min read</span>
@@ -43,6 +50,7 @@ const ld = projectLd({ title, summary, date, updated, url, source, tags, image: 
           {source && <a class="btn btn-tonal" href={source} {...linkAttrs(source)}><Icon name="github" size={16} />View source</a>}
         </div>
       )}
+      <Share url={url} title={title} />
       <Toc headings={headings} />
     </aside>
     <div class="article-main">
@@ -52,6 +60,7 @@ const ld = projectLd({ title, summary, date, updated, url, source, tags, image: 
         <Content />
       </div>
       <Backlinks id={`projects/${project.id}`} />
+      <History file={project.filePath} />
       <section class="related" data-related={`projects/${project.id}`}></section>
     </div>
   </article>

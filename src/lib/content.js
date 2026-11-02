@@ -52,3 +52,9 @@ export function updatedDate(data) {
   const day = (d) => new Date(d).toISOString().slice(0, 10);
   return day(data.updated) > day(data.date) ? data.updated : null;
 }
+
+/** A URL / file-name slug: "Ærø: Rust & WASM!" -> "aeroe-rust-wasm". */
+export function slugify(text) {
+  return String(text).toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'oe').replace(/å/g, 'aa').replace(/ß/g, 'ss')
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}

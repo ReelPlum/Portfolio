@@ -1,0 +1,41 @@
+---
+// Share buttons: copy the link, the phone's own share sheet (when the browser has one), LinkedIn, X and Bluesky.
+import Icon from './Icon.astro';
+import { shareLinks } from '../lib/share.js';
+const { url, title } = Astro.props;
+---
+<div class="share" data-share data-url={url} data-title={title}>
+  <h2 class="aside-title">Share</h2>
+  <div class="share-buttons">
+    <button type="button" class="icon-btn share-copy" aria-label="Copy link" title="Copy link"><Icon name="link" size={20} /></button>
+    <button type="button" class="icon-btn share-native" aria-label="Share…" title="Share…" hidden><Icon name="share" size={20} /></button>
+    {shareLinks({ url, title }).map((s) => (
+      <a class="icon-btn" href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`Share on ${s.label} (opens in a new tab)`} title={`Share on ${s.label}`} data-share-to={s.id}>
+        <Icon name={s.icon} size={18} />
+      </a>
+    ))}
+    <span class="visually-hidden share-status" role="status"></span>
+  </div>
+</div>
+<script>
+  for (const box of document.querySelectorAll('[data-share]')) {
+    const { url, title } = box.dataset;
+    const status = box.querySelector('.share-status');
+    const native = box.querySelector('.share-native');
+    if (navigator.share) {
+      native.hidden = false;
+      native.addEventListener('click', () => navigator.share({ title, url }).catch(() => {}));
+    }
+    box.querySelector('.share-copy').addEventListener('click', async (e) => {
+      const btn = e.currentTarget;
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.classList.add('is-copied');
+        status.textContent = 'Link copied';
+        setTimeout(() => { btn.classList.remove('is-copied'); status.textContent = ''; }, 2000);
+      } catch {
+        status.textContent = 'Copying is blocked in this browser';
+      }
+    });
+  }
+</script>

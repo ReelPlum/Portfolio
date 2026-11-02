@@ -1,0 +1,11 @@
+frederik:
+  name: Frederik
+  bio: Builds interpreters and tools.
+  links:
+    - { label: GitHub, href: 'https://github.com/ReelPlum', icon: github }
+ada:
+  name: Ada Example
+  bio: A guest writer who likes compilers.
+  avatar: /images/tiny-calc.svg
+  links:
+    - { label: Website, href: 'https://example.com/ada' }

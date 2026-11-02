@@ -5,7 +5,7 @@ import { iconSvg } from '../lib/icons.js';
 import { withBase } from '../lib/content.js';
 const { variant = 'bar', value = '' } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const id = variant === 'page' ? 'search-page-input' : 'search-bar-input';
+const id = { page: 'search-page-input', notfound: 'search-404-input' }[variant] || 'search-bar-input';
 // Icons for results rendered in the browser (icons are generated at build time).
 const icons = JSON.stringify({
   project: iconSvg('code', { size: 16 }),
@@ -38,6 +38,7 @@ const icons = JSON.stringify({
 
 <script>
   import { search, renderResults, loadIndex } from '../lib/search-client.js';
+  import { wordsFromPath } from '../lib/search.js';
 
   const STATUS = {
     loading: 'Keyword matches shown. Loading semantic search…',
@@ -74,7 +75,7 @@ const icons = JSON.stringify({
       if (all) all.href = `${form.action}?q=${encodeURIComponent(q)}`;
       search(q, (results, { semantic }) => {
         if (mine !== seq) return; // a newer query is running
-        renderResults(list, results, q, { limit: variant === 'bar' ? 5 : Infinity, icons });
+        renderResults(list, results, q, { limit: variant === 'page' ? Infinity : 5, icons });
         status.innerHTML = '';
         if (!results.length) status.textContent = semantic === 'loading' ? 'Searching…' : `No results for “${q}”`;
         else if (STATUS[semantic]) {
@@ -103,6 +104,11 @@ const icons = JSON.stringify({
     }
     if (variant === 'page') {
       const q = new URLSearchParams(location.search).get('q');
+      if (q) { input.value = q; run(); }
+    }
+    // On the "not found" page, search for the words of the address that was asked for.
+    if (variant === 'notfound') {
+      const q = wordsFromPath(location.pathname, import.meta.env.BASE_URL);
       if (q) { input.value = q; run(); }
     }
   }

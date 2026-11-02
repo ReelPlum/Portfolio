@@ -48,3 +48,20 @@ describe('deploy workflow', () => {
     expect(uses.filter((u) => u.startsWith('actions/upload-pages-artifact@'))).toHaveLength(1);
   });
 });
+
+describe('deploy builds', () => {
+  const deploySteps = workflow.jobs.deploy.steps;
+  it('check out the full history, so each post lists every commit that changed it', () => {
+    for (const job of ['test', 'deploy']) {
+      const checkout = workflow.jobs[job].steps.find((s) => s.uses?.startsWith('actions/checkout@'));
+      expect(checkout.with?.['fetch-depth'], job).toBe(0);
+    }
+  });
+  it('install Chromium before building, and fail if the CV PDF or preview images cannot be made', () => {
+    const install = deploySteps.findIndex((s) => /playwright install .*chromium/.test(s.run || ''));
+    const build = deploySteps.findIndex((s) => s.run === 'npm run build');
+    expect(install).toBeGreaterThan(-1);
+    expect(install).toBeLessThan(build);
+    expect(deploySteps[build].env.RENDERS).toBe('required');
+  });
+});

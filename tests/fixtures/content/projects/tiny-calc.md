@@ -21,6 +21,7 @@ demo:
       code: |
         let x = 10
         print x / (5 - 5)
+status: active
 ---
 
 Tiny Calc is an example of a WASI program running on this site. Press **Run** to execute the

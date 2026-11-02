@@ -21,6 +21,7 @@ import { rehypeDownloadLinks } from './src/lib/rehype-download-links.js';
 import { rehypeExternalLinks } from './src/lib/rehype-external-links.js';
 import { buildTargets } from './src/lib/references.js';
 import { searchEmbeddings } from './src/lib/search-embeddings.js';
+import { buildRenders } from './src/lib/build-renders.js';
 import site from './site.config.js';
 
 // The tests build the site from tests/fixtures (CONTENT_DIR) so they don't depend on your real posts.
@@ -47,7 +48,7 @@ export default defineConfig({
   trailingSlash: 'ignore',
   // transformers.js and pdf.js are big but only load when someone searches / a page has a PDF.
   vite: { build: { chunkSizeWarningLimit: 1500 } },
-  integrations: [mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings()],
+  integrations: [mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings(), buildRenders({ base })],
   markdown: {
     processor: unified({
       remarkPlugins: [[remarkSnippets, { dir: fileURLToPath(new URL(`./${contentDir}/snippets/`, import.meta.url)) }], remarkLatexPreamble, remarkLiveVars, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }], remarkCallouts, remarkMathRefs, [remarkCitations, { contentDir: fileURLToPath(new URL(`./${contentDir}/`, import.meta.url)), publicDirs }]],

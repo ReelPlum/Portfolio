@@ -1,0 +1,26 @@
+---
+// Who wrote a post: avatars and names linking to each author's page, and a "Guest post" label.
+import site from '../../site.config.js';
+import { authorsOf } from '../lib/queries.js';
+import { isGuest } from '../lib/authors.js';
+import { withBase } from '../lib/content.js';
+const { entry } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const authors = await authorsOf(entry);
+const guest = isGuest(entry, site.defaultAuthor);
+const initials = (name) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+---
+<div class="byline">
+  {guest && <span class="guest-badge">Guest post</span>}
+  <span class="byline-authors">
+    <span class="visually-hidden">By </span>
+    {authors.map((a) => (
+      <a class="byline-author" href={withBase(`/authors/${a.id}/`, base)} rel="author">
+        {a.data.avatar
+          ? <img class="avatar" src={withBase(a.data.avatar, base)} alt="" width="28" height="28" loading="lazy" />
+          : <span class="avatar avatar-initials" aria-hidden="true">{initials(a.data.name)}</span>}
+        <span>{a.data.name}</span>
+      </a>
+    ))}
+  </span>
+</div>

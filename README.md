@@ -34,6 +34,11 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - "Updated" dates, reading time, drafts, related posts (picked with the search vectors), heading links,
   and a collapsible "On this page" on phones
 - Post templates (`npm run new`) and shared snippets
+- Authors with their own pages, bylines and "Guest post" labels
+- Share buttons (copy link, LinkedIn, X, Bluesky and the phone's share sheet) without third-party scripts
+- A generated social preview image for every post and project, and a version history from git
+- Project status badges, a CV page built from one data file with a PDF download, a 404 page that searches
+  for what you were looking for, and optional privacy-friendly analytics (GoatCounter)
 - Search-engine friendly: static HTML, sitemap, `robots.txt`, RSS, Open Graph tags and JSON-LD structured data
 - Unit tests (Vitest) and browser tests (Playwright), run on every push
 
@@ -379,6 +384,30 @@ https://vimeo.com/VIDEO_ID
 
 A link inside a sentence stays a normal link.
 
+### Authors and guest posts
+
+People who write on the site are listed in `src/content/authors.yaml`:
+
+```yaml
+frederik:
+  name: Frederik
+  bio: I build interpreters.
+  avatar: /images/me.jpg          # optional; initials are shown otherwise
+  links:
+    - { label: GitHub, href: 'https://github.com/ReelPlum', icon: github }
+```
+
+A post without `authors:` is by `defaultAuthor` from `site.config.js`. Add `authors: [ada]` (or
+`[frederik, ada]`) to credit others; a post the site's owner didn't write is labelled "Guest post". Each
+author gets a page at `/authors/<id>/`. A name that isn't in `authors.yaml` stops the build.
+
+### CV
+
+`src/content/cv.yaml` becomes `/cv/` (name, headline, contact links, summary, experience, education,
+projects, skills, languages and awards; see the file for the format). After the build, the page is
+printed to a PDF that visitors can download. That uses Chromium: run `npx playwright install chromium` once
+locally (without it the build still works, just without the PDF and preview images).
+
 ### Project
 
 ```markdown
@@ -389,6 +418,7 @@ date: 2026-10-20
 tags: [Rust, WebAssembly]
 cover: /images/interpreter.svg
 featured: true                       # featured projects come first; the first one is the big tile on the home page
+status: active                       # optional badge: active, maintained, experimental, paused, finished or archived
 source: https://github.com/ReelPlum/my-interpreter   # adds a "View source" button
 link: https://example.com            # optional "Visit" button
 ---
@@ -448,6 +478,14 @@ Each post and project also lists three related posts or projects at the end, pic
 document vectors.
 
 ## Settings
+
+Analytics are off until you set `goatcounter: 'your-code'` in `site.config.js` (from
+[goatcounter.com](https://www.goatcounter.com), which doesn't use cookies or collect personal data). The
+script is only added to the built site, never in `npm run dev`.
+
+Each post's version history needs the full git history when building; the deploy workflow checks out with
+`fetch-depth: 0`.
+
 
 `site.config.js` holds your name, tagline, email (used as a `mailto:` link on the contact page), social links, the
 navigation and the link to this repository.

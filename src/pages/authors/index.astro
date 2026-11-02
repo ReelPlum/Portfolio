@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getAuthors, getPosts, getProjects, authorsOf } from '../../lib/queries.js';
+import { withBase } from '../../lib/content.js';
+const base = import.meta.env.BASE_URL;
+const all = [...(await getPosts()), ...(await getProjects())];
+const counts = new Map();
+for (const e of all) for (const a of await authorsOf(e)) counts.set(a.id, (counts.get(a.id) || 0) + 1);
+const authors = [...(await getAuthors()).values()].filter((a) => counts.get(a.id));
+const initials = (name) => name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+---
+<Base title="Authors" description="Everyone who writes here.">
+  <header class="page-header"><h1>Authors</h1></header>
+  <ul class="author-list">
+    {authors.map((a) => (
+      <li>
+        <a class="author-row" href={withBase(`/authors/${a.id}/`, base)}>
+          {a.data.avatar ? <img class="avatar avatar-lg" src={withBase(a.data.avatar, base)} alt="" width="48" height="48" loading="lazy" /> : <span class="avatar avatar-lg avatar-initials" aria-hidden="true">{initials(a.data.name)}</span>}
+          <span><span class="author-name">{a.data.name}</span>{a.data.bio && <span class="author-bio">{a.data.bio}</span>}</span>
+          <span class="author-count">{counts.get(a.id)} {counts.get(a.id) === 1 ? 'piece' : 'pieces'}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</Base>

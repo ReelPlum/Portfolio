@@ -1,13 +1,25 @@
 ---
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
+import SearchBox from '../components/SearchBox.astro';
+import PostList from '../components/PostList.astro';
 import { withBase } from '../lib/content.js';
+import { getPosts } from '../lib/queries.js';
 const base = import.meta.env.BASE_URL;
+const recent = (await getPosts()).slice(0, 3);
 ---
-<Base title="Not found">
-  <section class="hero">
+<Base title="Not found" noindex>
+  <section class="hero notfound">
     <p class="hero-eyebrow">404</p>
     <h1 class="hero-title">This page wandered off.</h1>
+    <p class="lede">The address may have changed. Try searching for it:</p>
+    <div class="notfound-search"><SearchBox variant="notfound" /></div>
     <div class="hero-actions"><a class="btn" href={withBase('/', base)}><Icon name="arrow_back" size={18} />Back home</a></div>
   </section>
+  {recent.length > 0 && (
+    <section class="notfound-recent" aria-labelledby="recent-title">
+      <h2 id="recent-title" class="section-title">Recent posts</h2>
+      <PostList posts={recent} />
+    </section>
+  )}
 </Base>

@@ -1,0 +1,40 @@
+# Your CV. It becomes /cv/ and a PDF to download. Every field except name is optional.
+# Dates are "2024" or "2024-09"; write end: present for something ongoing.
+name: Frederik
+headline: Software developer who builds interpreters, tools and things for the web
+location: Denmark
+email: hello@example.com # TODO: your address
+website: https://reelplum.github.io/Portfolio/
+links:
+  - { label: GitHub, href: 'https://github.com/ReelPlum', icon: github }
+  - { label: LinkedIn, href: 'https://www.linkedin.com/in/your-profile/', icon: linkedin } # TODO
+summary: >-
+  I like making programming languages and the tools around them, and putting them on the web so anyone can
+  try them. This is filler text: replace it with a few sentences about yourself.
+experience:
+  - role: Example role # TODO: replace with your own experience
+    org: Example company
+    location: Copenhagen
+    start: 2024-09
+    end: present
+    points:
+      - Built an interpreter for a small scripting language in Rust and compiled it to WebAssembly.
+      - Wrote the documentation and the tests.
+education:
+  - degree: Example degree # TODO
+    school: Example university
+    start: 2022
+    end: 2025
+projects:
+  - name: Interpreter
+    href: /projects/interpreter/
+    description: A tree-walking interpreter in Rust that runs in the browser.
+  - name: This website
+    href: https://github.com/ReelPlum/Portfolio
+    description: Astro, markdown, vector search, KaTeX and WebAssembly demos.
+skills:
+  - { group: Languages, items: [Rust, TypeScript, JavaScript, Python] }
+  - { group: Tools, items: [WebAssembly, Astro, Git, GitHub Actions] }
+languages:
+  - { name: Danish, level: Native }
+  - { name: English, level: Fluent }

@@ -7,12 +7,11 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { slugify } from '../src/lib/content.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-export function slugify(title) {
-  return String(title).toLowerCase().replace(/æ/g, 'ae').replace(/ø/g, 'oe').replace(/å/g, 'aa').replace(/ß/g, 'ss').normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-}
+export { slugify };
 
 export function fillTemplate(template, { title, date, slug }) {
   return template.replace(/\{\{(title|date|slug)\}\}/g, (_, k) => ({ title: title.replace(/"/g, '\\"'), date, slug })[k]);

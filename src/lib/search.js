@@ -335,3 +335,11 @@ export function matchedFields(result, query) {
   }
   return out;
 }
+
+/** Search words from a missing page's address: "/Portfolio/blog/tree-walkng/" -> "tree walkng". */
+export function wordsFromPath(pathname, base = '/') {
+  let p = decodeURIComponent(String(pathname || ''));
+  if (base !== '/' && p.startsWith(base)) p = p.slice(base.length);
+  const parts = p.split('/').filter(Boolean).filter((s) => !/^(blog|projects|tags|index\.html|404(\.html)?)$/i.test(s));
+  return parts.join(' ').replace(/\.(html?|md)$/i, '').replace(/[-_.+]+/g, ' ').replace(/\s+/g, ' ').trim();
+}

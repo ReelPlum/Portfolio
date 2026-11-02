@@ -1,0 +1,43 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import PostList from '../../components/PostList.astro';
+import { getAuthors, getPosts, getProjects, authorsOf } from '../../lib/queries.js';
+import { withBase } from '../../lib/content.js';
+import { linkAttrs } from '../../lib/links.js';
+import { hasIcon } from '../../lib/icons.js';
+
+export async function getStaticPaths() {
+  const all = [...(await getPosts()), ...(await getProjects())];
+  const paths = [];
+  for (const author of (await getAuthors()).values()) {
+    const entries = [];
+    for (const e of all) if ((await authorsOf(e)).some((a) => a.id === author.id)) entries.push(e);
+    if (entries.length) paths.push({ params: { author: author.id }, props: { author, entries } });
+  }
+  return paths;
+}
+const { author, entries } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const { name, bio, avatar, links } = author.data;
+const initials = name.split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+const ld = { '@context': 'https://schema.org', '@type': 'Person', name, description: bio, sameAs: links.map((l) => l.href) };
+---
+<Base title={name} description={bio || `Posts and projects by ${name}.`} jsonLd={[ld]}>
+  <header class="page-header author-header">
+    <a class="back-link" href={withBase('/authors/', base)}><Icon name="arrow_back" size={18} />Authors</a>
+    <div class="author-head">
+      {avatar ? <img class="avatar avatar-xl" src={withBase(avatar, base)} alt="" width="96" height="96" /> : <span class="avatar avatar-xl avatar-initials" aria-hidden="true">{initials}</span>}
+      <div>
+        <h1>{name}</h1>
+        {bio && <p class="lede">{bio}</p>}
+        {links.length > 0 && (
+          <p class="author-links">
+            {links.map((l) => <a class="btn btn-tonal" href={l.href} {...linkAttrs(l.href)}><Icon name={l.icon && hasIcon(l.icon) ? l.icon : 'public'} size={18} />{l.label}</a>)}
+          </p>
+        )}
+      </div>
+    </div>
+  </header>
+  <PostList posts={entries} />
+</Base>

@@ -283,6 +283,24 @@ A project can run a WebAssembly build right on its page. The [[interpreter]] pro
 where you type code and see what it prints. It shows a placeholder until the `.wasm` file is added to
 `public/wasm/interpreter/`.
 
+## Around every post
+
+Every post and project also gets these, without writing anything:
+
+- **Share buttons** in the side column: copy the link, LinkedIn, X and Bluesky, and your phone's own share
+  sheet where there is one. They are plain links, so nothing is loaded from those sites until you click.
+- **A preview image** for link previews on social sites, drawn from the title and description when the
+  site is built, unless the post has a `cover:` image.
+- **History**: a list at the end of every commit that changed the post, each linked to its changes on GitHub.
+- **Related posts**, picked by meaning with the search vectors.
+- **Authors**: a byline with links to each author's page. Add people to `src/content/authors.yaml` and
+  list them with `authors: [ada]`; posts by someone else than the site's owner are marked "Guest post".
+
+Projects can show a status badge with `status: active` (or `maintained`, `experimental`, `paused`,
+`finished`, `archived`), like the one on [[interpreter]].
+
+The [CV](/cv/) is made from `src/content/cv.yaml`, with a PDF version printed when the site is built.
+
 ## Search
 
 Everything here is searchable from the bar at the top, by keyword or by meaning, and formulas in the

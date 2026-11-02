@@ -1,0 +1,7 @@
+---
+import Icon from './Icon.astro';
+import { STATUSES } from '../lib/status.js';
+const { status } = Astro.props;
+const s = status && STATUSES[status];
+---
+{s && <span class={`status-badge status-${s.tone}`} data-status={status}><Icon name={s.icon} size={16} /><span><span class="visually-hidden">Status: </span>{s.label}</span></span>}

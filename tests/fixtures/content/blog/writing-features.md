@@ -5,6 +5,7 @@ updated: 2026-10-28
 description: Callouts, footnotes, diagrams, diffs, citations, sliders and numbered equations.
 tags: [Meta, Maths]
 bibliography: /files/extra.bib
+authors: [frederik, ada]
 ---
 
 ```preamble

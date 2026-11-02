@@ -8,6 +8,11 @@ export default {
   source: 'https://github.com/ReelPlum/Portfolio',
   title: 'Frederik',
   author: 'Frederik',
+  // The id in src/content/authors.yaml of the person the site belongs to. Posts by anyone else are guest posts.
+  defaultAuthor: 'frederik',
+  // Privacy-friendly visitor counts with GoatCounter (https://www.goatcounter.com): set your site code, e.g.
+  // 'frederik' for frederik.goatcounter.com. Left empty, no analytics script is added.
+  goatcounter: '',
   tagline: 'I build interpreters, tools and things for the web.',
   description: 'Projects, writing and experiments by Frederik.',
   email: 'hello@example.com', // TODO: your address. Shown on the contact page as a mailto: link
@@ -20,6 +25,7 @@ export default {
     { label: 'Projects', href: '/projects/' },
     { label: 'Blog', href: '/blog/' },
     { label: 'About', href: '/about/' },
+    { label: 'CV', href: '/cv/' },
     { label: 'Contact', href: '/contact/' },
   ],
 };

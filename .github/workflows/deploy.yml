@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history: each post lists the commits that changed it
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -67,11 +69,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0 # full history: each post lists the commits that changed it
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Chromium prints the CV to PDF and draws the social preview images after the build.
+      - run: npx playwright install --with-deps chromium
       - id: pages
         uses: actions/configure-pages@v6
       - run: npm run build
@@ -80,6 +86,7 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SEARCH_EMBEDDINGS: required
+          RENDERS: required
       # One artifact name per attempt: re-running the job keeps the earlier attempt's
       # artifact, and deploy-pages refuses to choose between two with the same name.
       - uses: actions/upload-pages-artifact@v5

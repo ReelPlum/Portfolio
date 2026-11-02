@@ -5,6 +5,7 @@ date: 2026-10-20
 tags: [Rust, WebAssembly, Languages]
 cover: /images/interpreter.svg
 featured: true
+status: active
 source: https://github.com/ReelPlum
 demo:
   type: wasi

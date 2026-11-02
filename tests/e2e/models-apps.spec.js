@@ -11,6 +11,8 @@ test.describe('3D models', () => {
     await expect.poll(() => viewer.evaluate((el) => el.loaded), { timeout: 15000 }).toBe(true);
     await expect(viewer).toHaveAttribute('camera-controls', '');
     const before = await viewer.evaluate((el) => el.getCameraOrbit().theta);
+    // The byline moved the viewer below the fold at 720px; drag where it actually is on screen.
+    await viewer.scrollIntoViewIfNeeded();
     const box = await viewer.boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();

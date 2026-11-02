@@ -1,0 +1,7 @@
+# Everyone who writes on the site. A post lists its authors in its front matter, e.g. `authors: [frederik, ada]`;
+# posts without `authors:` are by `defaultAuthor` in site.config.js. Posts by anyone else are marked "Guest post".
+frederik:
+  name: Frederik
+  bio: I build interpreters, tools and things for the web.
+  links:
+    - { label: GitHub, href: 'https://github.com/ReelPlum', icon: github }

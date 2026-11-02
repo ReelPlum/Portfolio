@@ -1,0 +1,23 @@
+name: Frederik Example
+headline: Builds interpreters
+location: Copenhagen
+email: test@example.com
+links:
+  - { label: GitHub, href: 'https://github.com/ReelPlum', icon: github }
+summary: A short summary for the tests.
+experience:
+  - role: Compiler engineer
+    org: Example Labs
+    start: 2024-09
+    end: present
+    points: [Wrote a bytecode VM., Cut start-up time in half.]
+education:
+  - { degree: BSc Computer Science, school: Example University, start: 2021, end: 2024 }
+projects:
+  - { name: Tiny Calc, href: /projects/tiny-calc/, description: A calculator language. }
+skills:
+  - { group: Languages, items: [Rust, TypeScript] }
+languages:
+  - { name: Danish, level: Native }
+awards:
+  - { name: Best demo, year: 2025 }

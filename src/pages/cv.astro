@@ -1,0 +1,84 @@
+---
+// The CV, built from cv.yaml. The same page is printed to a PDF after the build (src/lib/build-renders.js).
+import { join } from 'node:path';
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { loadCv, formatPeriod, cvPdfName } from '../lib/cv.js';
+import { withBase } from '../lib/content.js';
+import { linkAttrs } from '../lib/links.js';
+import { hasIcon } from '../lib/icons.js';
+
+const cv = loadCv(join(process.cwd(), process.env.CONTENT_DIR || 'src/content'));
+if (!cv) throw new Error('The CV page needs src/content/cv.yaml. Add it, or delete src/pages/cv.astro and the CV link in site.config.js.');
+const base = import.meta.env.BASE_URL;
+const href = (h) => (h?.startsWith('/') ? withBase(h, base) : h);
+const pdf = cv && withBase(`/cv/${cvPdfName(cv.name)}`, base);
+---
+<Base title="CV" description={cv.headline || `CV of ${cv.name}`}>
+  <article class="cv">
+    <header class="cv-header">
+      <div>
+        <h1>{cv.name}</h1>
+        {cv.headline && <p class="lede">{cv.headline}</p>}
+        <p class="cv-contact">
+          {cv.location && <span><Icon name="public" size={16} />{cv.location}</span>}
+          {cv.email && <a href={`mailto:${cv.email}`}><Icon name="mail" size={16} />{cv.email}</a>}
+          {cv.links.map((l) => <a href={l.href} {...linkAttrs(l.href)}><Icon name={l.icon && hasIcon(l.icon) ? l.icon : 'link'} size={16} />{l.label}</a>)}
+        </p>
+      </div>
+      <a class="btn cv-download" href={pdf} download data-cv-pdf><Icon name="download" size={18} />Download PDF</a>
+    </header>
+
+    {cv.summary && <section class="cv-section"><p class="cv-summary">{cv.summary}</p></section>}
+
+    {cv.experience.length > 0 && (
+      <section class="cv-section" aria-labelledby="cv-experience">
+        <h2 id="cv-experience"><Icon name="work" size={20} />Experience</h2>
+        {cv.experience.map((x) => (
+          <div class="cv-item">
+            <div class="cv-item-head"><h3>{x.role}<span class="cv-org"> · {x.org}</span></h3><span class="cv-when">{formatPeriod(x)}{x.location && ` · ${x.location}`}</span></div>
+            {x.points.length > 0 && <ul>{x.points.map((p) => <li>{p}</li>)}</ul>}
+          </div>
+        ))}
+      </section>
+    )}
+
+    {cv.education.length > 0 && (
+      <section class="cv-section" aria-labelledby="cv-education">
+        <h2 id="cv-education"><Icon name="school" size={20} />Education</h2>
+        {cv.education.map((x) => (
+          <div class="cv-item">
+            <div class="cv-item-head"><h3>{x.degree}<span class="cv-org"> · {x.school}</span></h3><span class="cv-when">{formatPeriod(x)}{x.location && ` · ${x.location}`}</span></div>
+            {x.points.length > 0 && <ul>{x.points.map((p) => <li>{p}</li>)}</ul>}
+          </div>
+        ))}
+      </section>
+    )}
+
+    {cv.projects.length > 0 && (
+      <section class="cv-section" aria-labelledby="cv-projects">
+        <h2 id="cv-projects"><Icon name="code" size={20} />Projects</h2>
+        <ul class="cv-projects">
+          {cv.projects.map((p) => <li>{p.href ? <a href={href(p.href)} {...linkAttrs(p.href)}>{p.name}</a> : <strong>{p.name}</strong>}{p.description && <span> · {p.description}</span>}</li>)}
+        </ul>
+      </section>
+    )}
+
+    {(cv.skills.length > 0 || cv.languages.length > 0) && (
+      <section class="cv-section" aria-labelledby="cv-skills">
+        <h2 id="cv-skills"><Icon name="badge" size={20} />Skills</h2>
+        <dl class="cv-skills">
+          {cv.skills.map((s) => <><dt>{s.group}</dt><dd>{s.items.join(', ')}</dd></>)}
+          {cv.languages.length > 0 && <><dt>Spoken languages</dt><dd>{cv.languages.map((l) => (l.level ? `${l.name} (${l.level})` : l.name)).join(', ')}</dd></>}
+        </dl>
+      </section>
+    )}
+
+    {cv.awards.length > 0 && (
+      <section class="cv-section" aria-labelledby="cv-awards">
+        <h2 id="cv-awards"><Icon name="stars_2" size={20} />Awards</h2>
+        <ul>{cv.awards.map((a) => <li><strong>{a.name}</strong>{a.year && ` (${a.year})`}{a.description && ` · ${a.description}`}</li>)}</ul>
+      </section>
+    )}
+  </article>
+</Base>

@@ -1,0 +1,29 @@
+---
+// "History": every commit that changed this post, newest first, linked to GitHub.
+import Icon from './Icon.astro';
+import site from '../../site.config.js';
+import { fileHistory, commitUrl, fileAtCommitUrl } from '../lib/history.js';
+import { formatDate } from '../lib/content.js';
+const { file } = Astro.props;
+const commits = fileHistory(file);
+const n = commits.length;
+---
+{n > 0 && (
+  <details class="history" data-icon-trigger>
+    <summary><Icon name="history" size={20} /><span>History</span><span class="history-count">{n} {n === 1 ? 'change' : 'changes'}</span><Icon name="keyboard_arrow_down" size={20} /></summary>
+    <ol class="history-list">
+      {commits.map((c) => (
+        <li>
+          <time datetime={c.date}>{formatDate(c.date)}</time>
+          <span class="history-subject">{c.subject}</span>
+          {site.source && (
+            <span class="history-links">
+              <a href={commitUrl(site.source, c.hash, file)} target="_blank" rel="noopener noreferrer" aria-label={`Changes in ${c.hash.slice(0, 7)} (opens in a new tab)`}><code>{c.hash.slice(0, 7)}</code></a>
+              <a href={fileAtCommitUrl(site.source, c.hash, file)} target="_blank" rel="noopener noreferrer">This version</a>
+            </span>
+          )}
+        </li>
+      ))}
+    </ol>
+  </details>
+)}

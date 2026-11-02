@@ -1,6 +1,7 @@
 import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { glob, file } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { STATUS_NAMES } from './lib/status.js';
 
 const md = '**/[^_]*.{md,mdx}'; // files starting with _ are ignored (drafts / partials)
 // The tests build the site from tests/fixtures/content so they don't depend on your real posts.
@@ -15,6 +16,8 @@ const blog = defineCollection({
     description: z.string().optional(),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
+    // Ids from authors.yaml. Leave it out for posts by the site's author (site.config.js `defaultAuthor`).
+    authors: z.array(z.string()).optional(),
     draft: z.boolean().default(false), // only shown by `npm run dev`
     bibliography: z.union([z.string(), z.array(z.string())]).optional(), // .bib files in public/ for [@key] citations
   }),
@@ -60,8 +63,10 @@ const projects = defineCollection({
     source: z.string().url().optional(), // "View source" button
     link: z.string().url().optional(),
     featured: z.boolean().default(false),
+    status: z.enum(STATUS_NAMES).optional(), // active, maintained, experimental, paused, finished or archived
     order: z.number().default(0),
     demo: demo.optional(),
+    authors: z.array(z.string()).optional(),
     bibliography: z.union([z.string(), z.array(z.string())]).optional(),
     draft: z.boolean().default(false),
   }),
@@ -76,4 +81,15 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { blog, projects, pages };
+// Everyone who writes on the site: name, short bio, avatar (a path in public/ or a URL) and links.
+const authors = defineCollection({
+  loader: file(`${root}/authors.yaml`),
+  schema: z.object({
+    name: z.string(),
+    bio: z.string().optional(),
+    avatar: z.string().optional(),
+    links: z.array(z.object({ label: z.string(), href: z.string().url(), icon: z.string().optional() })).default([]),
+  }),
+});
+
+export const collections = { blog, projects, pages, authors };
