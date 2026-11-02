@@ -103,3 +103,47 @@ test.describe('download links', () => {
     expect(download.suggestedFilename()).toBe('lecture-notes.pdf');
   });
 });
+
+test.describe('files from other GitHub repositories', () => {
+  // The build reads these from tests/fixtures/github/<owner>/<repo>/<ref>/ instead of GitHub.
+  test('code, files, embeds, images and downloads are served from the site', async ({ page, request }) => {
+    const errors = await trackErrors(page);
+    await page.goto('blog/files-from-github/');
+    const code = page.locator('.code-block', { hasText: 'main.rs (lines 1–5)' });
+    await expect(code.locator('.code-lang')).toHaveText('Rust');
+    await expect(code.locator('pre')).toContainText('use std::collections::HashMap;');
+    await expect(page.locator('.code-block', { hasText: 'helper.js' }).locator('pre')).toContainText('answer = 42');
+    await expect(page.locator('.code-block', { hasText: 'notes.txt' }).locator('pre')).toContainText('Private notes');
+    await expect(page.locator('.table-block tbody tr')).toHaveCount(3);
+    await expect(page.locator('.embed-pdf canvas.pdf-page').first()).toBeVisible();
+    const img = page.getByRole('img', { name: 'A diagram from another repo' });
+    await expect.poll(() => img.evaluate((el) => el.naturalWidth)).toBeGreaterThan(0);
+    await expect(page.locator('.article-cover')).toHaveAttribute('src', /_github\/octo-dev\/secret-lab\/v1\/assets\/cover\.svg$/);
+
+    const zip = page.locator('a.download-link', { hasText: 'the release' });
+    await expect(zip).toHaveAttribute('download', 'release.zip');
+    expect((await request.get(await zip.getAttribute('href'))).ok()).toBe(true);
+
+    // A link in a sentence stays a link to GitHub.
+    await expect(page.getByRole('link', { name: /link to the repository.s code/ })).toHaveAttribute('href', 'https://github.com/octo-dev/secret-lab/blob/v1/src/main.rs');
+    errors.assertNone();
+  });
+
+  test('a wasm-bindgen app from another repository runs in a canvas', async ({ page }) => {
+    await page.goto('blog/files-from-github/');
+    const app = page.locator('.embed-canvas[data-module$="orbit.js"]');
+    await app.getByRole('button', { name: 'Run orbit' }).click();
+    const canvas = app.locator('canvas');
+    await expect(canvas).toHaveAttribute('data-started', /^\d+$/);
+    const pixel = await canvas.evaluate((c) => Array.from(c.getContext('2d').getImageData(5, 5, 1, 1).data));
+    expect(pixel.slice(0, 3)).toEqual([52, 168, 83]);
+  });
+
+  test('a 3D model from another repository loads', async ({ page }) => {
+    await page.goto('blog/files-from-github/');
+    const viewer = page.locator('.embed-model model-viewer');
+    await viewer.scrollIntoViewIfNeeded(); // model-viewer only loads a model once it is on screen
+    await expect.poll(() => viewer.evaluate((el) => el.loaded), { timeout: 15000 }).toBe(true);
+    await expect(page.locator('.embed-model a[download]')).toHaveAttribute('href', /_github\/octo-dev\/secret-lab\/v1\/assets\/gem\.glb$/);
+  });
+});

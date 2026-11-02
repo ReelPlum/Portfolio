@@ -80,6 +80,9 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}/
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SEARCH_EMBEDDINGS: required
+          # Reads files linked from other GitHub repositories. Add a PRIVATE_REPOS_TOKEN secret to use
+          # private ones (see the README); without it the workflow's own token reads public repositories.
+          GITHUB_FILES_TOKEN: ${{ secrets.PRIVATE_REPOS_TOKEN || github.token }}
       # One artifact name per attempt: re-running the job keeps the earlier attempt's
       # artifact, and deploy-pages refuses to choose between two with the same name.
       - uses: actions/upload-pages-artifact@v5

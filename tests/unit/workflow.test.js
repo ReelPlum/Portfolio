@@ -47,4 +47,10 @@ describe('deploy workflow', () => {
   it('uploads exactly one Pages artifact', () => {
     expect(uses.filter((u) => u.startsWith('actions/upload-pages-artifact@'))).toHaveLength(1);
   });
+
+  // Files from other repositories: private ones need the PRIVATE_REPOS_TOKEN secret, public ones use the run's token.
+  it('gives the deploy build a token for files from other GitHub repositories', () => {
+    const build = workflow.jobs.deploy.steps.find((s) => s.run === 'npm run build');
+    expect(build.env.GITHUB_FILES_TOKEN).toBe('${{ secrets.PRIVATE_REPOS_TOKEN || github.token }}');
+  });
 });

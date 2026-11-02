@@ -21,7 +21,7 @@ test.describe('tags drive pages and feeds', () => {
     await page.goto('projects/');
     await expect(page.locator('.project-card h3')).toHaveText(['My Interpreter', 'Tiny Calc']);
     await page.goto('blog/');
-    await expect(page.locator('.post-row-title')).toHaveText(['Hello, world', 'Notes on writing an interpreter in Rust', 'Running Rust in the browser with WASI', 'Models and apps']);
+    await expect(page.locator('.post-row-title')).toHaveText(['Hello, world', 'Notes on writing an interpreter in Rust', 'Running Rust in the browser with WASI', 'Files from GitHub', 'Models and apps']);
   });
 
   test('tags on a post link to their page', async ({ page }) => {

@@ -20,6 +20,8 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - 3D models (`.glb` / `.gltf`) you can rotate, WebAssembly canvas apps such as Rust + wgpu renderers, and text
   and CSV files shown inline
 - Download links with an icon and the file size
+- Files from your other GitHub repositories, private ones too: paste a link to a file on GitHub and it is shown,
+  embedded or offered for download like a file in `public/`
 - Links to other sites open in a new tab
 - Wide layout for big screens: posts get a side column with the details and "On this page"
 - Links between posts and projects with `[[slug]]`, and a "Referenced by" list on each page
@@ -216,6 +218,72 @@ It's shown as a button with a download icon and the file size. Links to archives
 [Source code](/files/project.zip)
 ```
 
+### Files from other GitHub repositories
+
+Anything above that takes a file from `public/` also takes a link to a file in another GitHub repository: code
+blocks, text and CSV files, PDFs, videos, 3D models, canvas apps, images, download links, and `cover`, `wasm` and
+`module` in frontmatter. Open the file on GitHub, copy the address from the browser and use it instead of the path.
+To show some lines, select them on GitHub (click a line number, shift-click another) and copy the address then.
+
+```markdown
+https://github.com/ReelPlum/my-interpreter/blob/main/src/lexer.rs#L26-L46
+
+https://github.com/ReelPlum/my-interpreter/blob/v1.0/examples/results.csv
+
+![The architecture](https://github.com/ReelPlum/my-interpreter/blob/main/docs/architecture.png)
+
+[The release](https://github.com/ReelPlum/my-interpreter/blob/main/dist/interpreter.zip)
+
+https://github.com/ReelPlum/renderer/blob/main/pkg/renderer.js?height=600
+```
+
+```yaml
+cover: https://github.com/ReelPlum/my-interpreter/blob/main/docs/screenshot.png
+demo:
+  type: wasi
+  wasm: https://github.com/ReelPlum/my-interpreter/blob/main/web/interpreter.wasm
+```
+
+The build downloads each file and publishes a copy with the site (under `/_github/`), so visitors never need access
+to the repository. A `.js` file with a wasm-bindgen `<name>_bg.wasm` next to it runs as a canvas app; any other `.js`
+file is shown as code. A link inside a sentence stays a normal link to GitHub. A file that can't be downloaded
+fails the build with the reason, so a post never shows a broken file.
+
+Tips:
+
+- **Branches move.** A link to `blob/main/...` shows whatever is on `main` when the site is built. Use a tag
+  (`blob/v1.0/...`) or a commit (press `y` on GitHub to turn the address into one) to keep a post showing the same code.
+- Branch names with a `/` in them (like `feature/parser`) can't be told apart from folders; use a tag or commit instead.
+- Raw links (`https://raw.githubusercontent.com/...`) work too.
+
+#### Private repositories
+
+> [!WARNING]
+> A file you reference from a private repository is **published on your site, where anyone can read it**. Only
+> reference files you are happy to make public. The rest of the repository stays private.
+
+The build needs a token that can read those repositories:
+
+1. Go to GitHub → **Settings** → **Developer settings** → **Personal access tokens** →
+   [**Fine-grained tokens**](https://github.com/settings/personal-access-tokens/new) → **Generate new token**.
+2. Give it a name (like "Portfolio files") and an expiration date. Under **Repository access** choose
+   **Only select repositories** and pick the private repositories you want to use files from.
+3. Under **Permissions** → **Repository permissions**, set **Contents** to **Read-only**. Nothing else is needed.
+4. Generate the token and copy it.
+5. In this repository go to **Settings** → **Secrets and variables** → **Actions** → **New repository secret**. Name it
+   `PRIVATE_REPOS_TOKEN` and paste the token.
+
+The deploy workflow passes it to the build as `GITHUB_FILES_TOKEN`. Without the secret, public repositories still
+work. When the token expires the build fails with a message saying so; make a new one and replace the secret.
+
+To build locally with private files, set the token in your shell first:
+
+```bash
+GITHUB_FILES_TOKEN=github_pat_... npm run dev
+```
+
+Downloaded files are kept in `.cache/github-files/` (not committed). Delete that folder to clear them.
+
 ### Links to other sites
 
 Links to other websites open in a new tab and get a small arrow; links within the site open normally.
@@ -401,7 +469,8 @@ npm run test:e2e   # browser tests (first time: npx playwright install chromium)
 The browser tests build the site from `tests/fixtures/content` instead of your real posts, so changing your
 content never breaks them. They use a tiny stand-in for the embedding model so they run offline; a separate CI job
 (`semantic-search`) checks the real model end to end. `tests/fixtures/tiny-calc` is a tiny Rust program used to test the WebAssembly
-playground for real.
+playground for real. Files "from GitHub" in the test posts are read from `tests/fixtures/github/<owner>/<repo>/<ref>/`
+instead of the network.
 
 House rule: every bug that gets fixed gets a test that reproduces it, marked with a `Regression:` comment.
 
