@@ -7,6 +7,8 @@ export function rehypeExternalLinks({ site, base = '/' } = {}) {
   return (tree) => {
     visit(tree, 'element', (node) => {
       if (node.tagName !== 'a' || !isExternal(node.properties?.href, { site, base })) return;
+      // Links that set their own target and rel (like the sponsored store links in product boxes).
+      if (node.properties.dataExternal === 'manual') return;
       Object.assign(node.properties, { target: EXTERNAL_ATTRS.target, rel: EXTERNAL_ATTRS.rel.split(' ') });
       const cls = node.properties.className || [];
       node.properties.className = [...(Array.isArray(cls) ? cls : [cls]), 'external-link'];

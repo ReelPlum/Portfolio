@@ -10,7 +10,7 @@ test('navigation is reachable on a phone', async ({ page }) => {
 });
 
 test('no horizontal scrolling', async ({ page }) => {
-  for (const path of ['', 'projects/tiny-calc/', 'blog/hello-world/']) {
+  for (const path of ['', 'projects/tiny-calc/', 'blog/hello-world/', 'posts/product-review/']) {
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, path).toBeLessThanOrEqual(0);
@@ -28,4 +28,11 @@ test('search works on a phone', async ({ page }) => {
   await page.goto('');
   await page.getByRole('searchbox').fill('calc');
   await expect(page.locator('.search-panel .search-result').first()).toContainText('Tiny Calc');
+});
+
+test('a product box takes the full width on a phone instead of sitting beside the text', async ({ page }) => {
+  await page.goto('posts/product-review/');
+  const card = await page.locator('[data-product]').first().boundingBox();
+  const prose = await page.locator('.prose').boundingBox();
+  expect(card.width).toBeGreaterThan(prose.width - 2);
 });
