@@ -4,9 +4,9 @@ import Icon from '../components/Icon.astro';
 import SearchBox from '../components/SearchBox.astro';
 import PostList from '../components/PostList.astro';
 import { withBase } from '../lib/content.js';
-import { getPosts } from '../lib/queries.js';
+import { getAllPosts } from '../lib/queries.js';
 const base = import.meta.env.BASE_URL;
-const recent = (await getPosts()).slice(0, 3);
+const recent = (await getAllPosts()).slice(0, 3);
 ---
 <Base title="Not found" noindex>
   <section class="hero notfound">

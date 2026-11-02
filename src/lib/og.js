@@ -3,7 +3,7 @@ import { formatDate } from './content.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-/** Where the image for a document lives ("blog/x" -> "/og/blog/x.png"; null -> the site's image). */
+/** Where the image for a document lives ("posts/x" -> "/og/posts/x.png"; null -> the site's image). */
 export const ogImagePath = (id) => (id ? `/og/${id}.png` : '/og/site.png');
 
 /** Shorten long text at a word boundary. */

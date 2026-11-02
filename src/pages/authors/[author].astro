@@ -2,13 +2,13 @@
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import PostList from '../../components/PostList.astro';
-import { getAuthors, getPosts, getProjects, authorsOf } from '../../lib/queries.js';
+import { getAuthors, getAllPosts, authorsOf } from '../../lib/queries.js';
 import { withBase } from '../../lib/content.js';
 import { linkAttrs } from '../../lib/links.js';
 import { hasIcon } from '../../lib/icons.js';
 
 export async function getStaticPaths() {
-  const all = [...(await getPosts()), ...(await getProjects())];
+  const all = await getAllPosts();
   const paths = [];
   for (const author of (await getAuthors()).values()) {
     const entries = [];

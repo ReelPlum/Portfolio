@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { trackErrors } from './helpers.js';
 
 test.describe('pages', () => {
-  for (const path of ['', 'projects/', 'blog/', 'about/', 'contact/', 'search/', 'blog/hello-world/', 'projects/tiny-calc/', 'projects/interpreter/']) {
+  for (const path of ['', 'projects/', 'blog/', 'about/', 'contact/', 'search/', 'blog/hello-world/', 'projects/tiny-calc/', 'projects/interpreter/', 'tags/', 'tags/rust/', 'posts/my-desk-setup/']) {
     test(`/${path} renders without errors`, async ({ page }) => {
       const errors = await trackErrors(page);
       const res = await page.goto(path);
@@ -29,7 +29,7 @@ test.describe('pages', () => {
 
   test('every internal link resolves', async ({ page, request, baseURL }) => {
     const seen = new Set();
-    for (const path of ['', 'projects/', 'blog/', 'contact/', 'blog/hello-world/']) {
+    for (const path of ['', 'projects/', 'blog/', 'contact/', 'blog/hello-world/', 'tags/', 'tags/rust/', 'posts/my-desk-setup/']) {
       await page.goto(path);
       const hrefs = await page.$$eval('a[href^="/"], link[href^="/"]', (els) => els.map((a) => a.getAttribute('href')));
       for (const h of hrefs) seen.add(h);

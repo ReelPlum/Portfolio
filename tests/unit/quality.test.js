@@ -126,7 +126,7 @@ describe('Lighthouse budgets', () => {
     const config = require('../../lighthouserc.cjs');
     const urls = config.ci.collect.url.map((u) => new URL(u).pathname);
     expect(urls).toEqual(['/Portfolio/', '/Portfolio/blog/how-a-tree-walking-interpreter-works/', '/Portfolio/blog/everything-this-site-can-do/', '/Portfolio/search/']);
-    for (const u of urls.slice(1, 3)) expect(readFileSync(`src/content/blog/${u.split('/')[3]}.md`, 'utf8')).toBeTruthy();
+    for (const u of urls.slice(1, 3)) expect(readFileSync(`src/content/posts/${u.split("/")[3]}.md`, 'utf8')).toBeTruthy();
     const matrix = config.ci.assert.assertMatrix;
     const all = matrix.find((m) => m.matchingUrlPattern === '.*').assertions;
     for (const c of ['performance', 'accessibility', 'best-practices']) expect(all[`categories:${c}`][0]).toBe('error');

@@ -2,7 +2,7 @@
 title: "{{title}}"
 date: {{date}}
 description: "One sentence about this post."
-tags: []
+tags: [blog]
 draft: true
 ---
 

@@ -1,8 +1,8 @@
 ---
 title: "{{title}}"
-summary: "One sentence about what it does."
+description: "One sentence about what it does."
 date: {{date}}
-tags: []
+tags: [project]
 # source: https://github.com/you/{{slug}}
 # link: https://example.com
 draft: true

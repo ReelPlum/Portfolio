@@ -3,6 +3,7 @@
 import Icon from './Icon.astro';
 import { iconSvg } from '../lib/icons.js';
 import { withBase } from '../lib/content.js';
+import { tagConfig } from '../lib/queries.js';
 const { variant = 'bar', value = '' } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const id = { page: 'search-page-input', notfound: 'search-404-input' }[variant] || 'search-bar-input';
@@ -12,6 +13,8 @@ const icons = JSON.stringify({
   post: iconSvg('article', { size: 16 }),
   semantic: iconSvg('stars_2', { size: 14 }),
   arrow: iconSvg('arrow_forward', { size: 18 }),
+  // The icon of each page in site.config.js tags.pages, for results from that page.
+  ...Object.fromEntries(tagConfig.pages.map((p) => [`type:${p.icon}`, iconSvg(p.icon, { size: 16 })])),
 });
 ---
 <form class={`search search--${variant}`} role="search" action={withBase('/search/', base)} method="get" data-search={variant} data-icons={icons}>

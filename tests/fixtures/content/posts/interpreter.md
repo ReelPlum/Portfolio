@@ -1,11 +1,10 @@
 ---
 title: My Interpreter
-summary: A programming language interpreter written in Rust, compiled to WebAssembly so you can run it right here in the browser.
+description: A programming language interpreter written in Rust, compiled to WebAssembly so you can run it right here in the browser.
 date: 2026-10-20
-tags: [Rust, WebAssembly, Languages]
+tags: [project, Rust, WebAssembly, Languages]
 cover: /images/interpreter.svg
 featured: true
-status: active
 source: https://github.com/ReelPlum
 demo:
   type: wasi

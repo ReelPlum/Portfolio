@@ -3,7 +3,7 @@ title: Everything this site can do
 date: 2026-10-30
 updated: 2026-11-02
 description: "One post that uses every feature: images, videos, PDFs, 3D models, WebAssembly apps, maths, sliders, code, diffs, diagrams, charts, citations, callouts, sidenotes and more."
-tags: [Meta]
+tags: [blog, Meta]
 ---
 
 ```preamble
@@ -14,7 +14,7 @@ tags: [Meta]
 ```
 
 This post is a tour of what you can put in a post or a project page. Each section says how to write it.
-Posts are markdown files in `src/content/blog/` and projects are in `src/content/projects/`.
+Posts and projects are markdown files in `src/content/posts/`; a project is a post tagged `project`.
 
 ## Images
 

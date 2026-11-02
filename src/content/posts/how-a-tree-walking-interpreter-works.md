@@ -2,7 +2,7 @@
 title: How a tree-walking interpreter runs your code
 date: 2026-10-28
 description: From characters to tokens to a syntax tree to output, and how the whole thing ends up running in a browser tab.
-tags: [Rust, Interpreters, WebAssembly]
+tags: [blog, Rust, Interpreters, WebAssembly]
 ---
 
 An interpreter is a program that reads another program and does what it says. A tree-walking interpreter,

@@ -11,8 +11,8 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 
 const targets = new Map([
-  ['blog/hello', { collection: 'blog', slug: 'hello', title: 'Hello post', url: '/blog/hello/' }],
-  ['projects/interp', { collection: 'projects', slug: 'interp', title: 'My Interpreter', url: '/projects/interp/' }],
+  ['posts/hello', { collection: 'posts', slug: 'hello', title: 'Hello post', url: '/blog/hello/' }],
+  ['posts/interp', { collection: 'posts', slug: 'interp', title: 'My Interpreter', url: '/projects/interp/' }],
 ]);
 
 const render = async (md, base = '/') => String(await unified()
@@ -90,8 +90,8 @@ describe('LaTeX', () => {
 describe('references', () => {
   it('links [[slug]] to the post or project by its title', async () => {
     const html = await render('See [[interp]] and [[blog/hello|this post]].', '/Portfolio/');
-    expect(html).toContain('<a href="/Portfolio/projects/interp/" class="ref-link" data-ref="projects/interp">My Interpreter</a>');
-    expect(html).toContain('<a href="/Portfolio/blog/hello/" class="ref-link" data-ref="blog/hello">this post</a>');
+    expect(html).toContain('<a href="/Portfolio/projects/interp/" class="ref-link" data-ref="posts/interp">My Interpreter</a>');
+    expect(html).toContain('<a href="/Portfolio/blog/hello/" class="ref-link" data-ref="posts/hello">this post</a>');
   });
   it('fails the build for references that point nowhere', async () => {
     await expect(render('See [[nope]].')).rejects.toThrow(/does not match any post/);

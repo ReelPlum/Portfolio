@@ -177,12 +177,15 @@ describe('post templates', () => {
   it('creates a draft post or project from each template and never overwrites', () => {
     const contentDir = mkdtempSync(join(tmpdir(), 'content-'));
     const post = createFromTemplate({ kind: 'post', title: 'My First Post', date: '2026-11-02', contentDir });
-    expect(post).toBe(join(contentDir, 'blog', 'my-first-post.md'));
+    expect(post).toBe(join(contentDir, 'posts', 'my-first-post.md'));
     const text = readFileSync(post, 'utf8');
     expect(text).toContain('title: "My First Post"');
     expect(text).toContain('draft: true');
-    expect(existsSync(createFromTemplate({ kind: 'project', title: 'Calc', contentDir }))).toBe(true);
-    expect(createFromTemplate({ kind: 'math-notes', title: 'Groups', contentDir })).toContain('/blog/');
+    expect(text).toMatch(/^tags: \[blog\]$/m);
+    const project = createFromTemplate({ kind: 'project', title: 'Calc', contentDir });
+    expect(project).toBe(join(contentDir, 'posts', 'calc.md'));
+    expect(readFileSync(project, 'utf8')).toMatch(/^tags: \[project\]$/m); // the tag puts it on the Projects page
+    expect(readFileSync(createFromTemplate({ kind: 'math-notes', title: 'Groups', contentDir }), 'utf8')).toMatch(/^tags: \[blog, /m);
     expect(() => createFromTemplate({ kind: 'post', title: 'My First Post', contentDir })).toThrow(/already exists/);
     expect(() => createFromTemplate({ kind: 'poem', title: 'x', contentDir })).toThrow(/No template "poem"/);
   });

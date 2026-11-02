@@ -23,7 +23,7 @@ export function createFromTemplate({ kind, title, date = new Date().toISOString(
   if (!title?.trim()) throw new Error('Give the new post a title: npm run new -- post "My title"');
   const slug = slugify(title);
   if (!slug) throw new Error(`Can't make a file name from "${title}"`);
-  const folder = join(contentDir, kind === 'project' ? 'projects' : 'blog');
+  const folder = join(contentDir, 'posts'); // projects are posts too: the template's tags decide where it shows
   const file = join(folder, `${slug}.md`);
   if (existsSync(file)) throw new Error(`${file} already exists`);
   mkdirSync(folder, { recursive: true });

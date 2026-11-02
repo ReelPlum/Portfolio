@@ -2,7 +2,7 @@
 title: Hello, world
 date: 2026-11-01
 description: Why I built this site, and how adding a post is just adding a markdown file.
-tags: [Meta]
+tags: [blog, Meta]
 ---
 
 ```preamble
@@ -11,7 +11,7 @@ tags: [Meta]
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 ```
 
-Welcome to my new site. Every post is a markdown file in `src/content/blog/`.
+Welcome to my new site. Every post is a markdown file in `src/content/posts/`.
 
 ## Images
 

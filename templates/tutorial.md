@@ -2,7 +2,7 @@
 title: "{{title}}"
 date: {{date}}
 description: "Build … step by step."
-tags: [Tutorial]
+tags: [blog, Tutorial]
 draft: true
 ---
 

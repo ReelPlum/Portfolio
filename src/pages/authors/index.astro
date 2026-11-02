@@ -1,9 +1,9 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getAuthors, getPosts, getProjects, authorsOf } from '../../lib/queries.js';
+import { getAuthors, getAllPosts, authorsOf } from '../../lib/queries.js';
 import { withBase } from '../../lib/content.js';
 const base = import.meta.env.BASE_URL;
-const all = [...(await getPosts()), ...(await getProjects())];
+const all = await getAllPosts();
 const counts = new Map();
 for (const e of all) for (const a of await authorsOf(e)) counts.set(a.id, (counts.get(a.id) || 0) + 1);
 const authors = [...(await getAuthors()).values()].filter((a) => counts.get(a.id));

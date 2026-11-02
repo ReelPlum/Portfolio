@@ -103,7 +103,7 @@ test.describe('version history', () => {
     const first = history.locator('.history-list li').first();
     await expect(first.locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}T/);
     await expect(first.getByRole('link', { name: /^Changes in [0-9a-f]{7}/ })).toHaveAttribute('href', /^https:\/\/github\.com\/ReelPlum\/Portfolio\/commit\/[0-9a-f]{40}#diff-[0-9a-f]{64}$/);
-    await expect(first.getByRole('link', { name: 'This version' })).toHaveAttribute('href', /\/blob\/[0-9a-f]{40}\/tests\/fixtures\/content\/blog\/hello-world\.md$/);
+    await expect(first.getByRole('link', { name: 'This version' })).toHaveAttribute('href', /\/blob\/[0-9a-f]{40}\/tests\/fixtures\/content\/posts\/hello-world\.md$/);
   });
 });
 
@@ -143,7 +143,7 @@ test.describe('social previews and feeds', () => {
   test('every post has its own preview image', async ({ page, request }) => {
     await page.goto('blog/hello-world/');
     const img = await page.locator('meta[property="og:image"]').getAttribute('content');
-    expect(img).toMatch(/\/og\/blog\/hello-world\.png$/);
+    expect(img).toMatch(/\/og\/posts\/hello-world\.png$/);
     await expect(page.locator('meta[property="og:image:width"]')).toHaveAttribute('content', '1200');
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
     const res = await request.get(new URL(img).pathname);

@@ -1,6 +1,6 @@
 // Astro integration: after the build, uses a headless Chromium (Playwright) to
 //   - print /cv/ to dist/cv/<name>-cv.pdf
-//   - draw a 1200×630 social preview image for every post and project (dist/og/<collection>/<id>.png),
+//   - draw a 1200×630 social preview image for every post (dist/og/posts/<id>.png),
 //     and one for the rest of the site (dist/og/site.png)
 //
 // RENDERS=auto      (default) skip with a warning when Chromium isn't installed (`npx playwright install chromium`)

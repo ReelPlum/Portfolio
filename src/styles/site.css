@@ -595,3 +595,11 @@ img[width][height] { height: auto; }
   text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
 }
 .prose :is(p, li, td, dd, blockquote) a:not(.download-link):hover { text-decoration-color: currentColor; text-decoration-thickness: 2px; }
+/* Tags that link to their page, and the list of every tag on /tags/ */
+a.tag-link { color: var(--on-surface-variant); }
+a.tag-link:hover { text-decoration: none; background: var(--state-hover); }
+a.tag-link:active { background: var(--state-press); }
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.tag-cloud .tag { height: 36px; padding: 0 14px; font-size: 14px; gap: 8px; }
+.tag-count { color: var(--on-surface-variant); font-size: 12px; opacity: 0.8; }
+.project-stack { display: grid; gap: 16px; }

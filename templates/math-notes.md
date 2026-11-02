@@ -2,7 +2,7 @@
 title: "{{title}}"
 date: {{date}}
 description: "Notes on …"
-tags: [Maths]
+tags: [blog, Maths]
 draft: true
 ---
 

@@ -2,7 +2,7 @@
 // "Referenced by": the posts and projects that link to this one with [[...]].
 import PostList from './PostList.astro';
 import { getBacklinks } from '../lib/queries.js';
-const { id } = Astro.props; // e.g. "blog/hello-world"
+const { id } = Astro.props; // e.g. "posts/hello-world"
 const refs = await getBacklinks(id);
 ---
 {refs.length > 0 && (

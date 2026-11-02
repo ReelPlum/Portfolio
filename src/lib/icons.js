@@ -22,7 +22,7 @@ export const animations = {
   mail: 'wiggle', rss_feed: 'pulse', github: 'wiggle', linkedin: 'wiggle', link: 'wiggle',
   play_arrow: 'pop', restart_alt: 'spin-back', content_copy: 'pop', check: 'pop', menu: 'pop', close: 'spin',
   search: 'wiggle', calendar_today: 'bounce', terminal: 'pop', home: 'bounce', person: 'bounce', code: 'pop',
-  article: 'bounce', download: 'bounce', deployed_code: 'spin', view_in_ar: 'spin', table: 'pop', stars_2: 'pulse', schedule: 'spin',
+  article: 'bounce', download: 'bounce', deployed_code: 'spin', view_in_ar: 'spin', table: 'pop', stars_2: 'pulse', schedule: 'spin', sell: 'wiggle',
   info: 'pop', lightbulb: 'pulse', priority_high: 'bounce', warning: 'wiggle', report: 'wiggle', update: 'spin', account_tree: 'pop',
   x: 'wiggle', bluesky: 'bounce', share: 'nudge-diag', rocket_launch: 'nudge-diag', build: 'wiggle', task_alt: 'pop', pause_circle: 'pop', inventory_2: 'bounce', science: 'wiggle', history: 'spin-back', group: 'bounce', work: 'bounce', school: 'bounce', badge: 'pop', public: 'spin',
   toc: 'pop', keyboard_arrow_down: 'bounce', chevron_left: 'nudge-x-back', functions: 'pop', menu_book: 'bounce', verified: 'pop', view_column_2: 'pop', view_agenda: 'pop',

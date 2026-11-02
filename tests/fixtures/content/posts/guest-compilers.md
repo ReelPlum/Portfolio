@@ -2,7 +2,7 @@
 title: A guest post about compilers
 date: 2026-10-15
 description: Ada writes about the difference between compilers and interpreters.
-tags: [Languages]
+tags: [blog, Languages]
 authors: [ada]
 ---
 

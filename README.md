@@ -6,7 +6,8 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 
 ## Features
 
-- New `.md` files become blog posts, project pages and standalone pages
+- New `.md` files become posts and standalone pages. Projects and blog posts are both posts; their tags decide
+  which pages and home page feeds they appear in, and every tag gets its own page
 - Google / Material Design 3 style: simple, flat colours, no gradients, nothing moves except icons
 - Light and dark mode that follows the system setting (no toggle)
 - Animated [Material Symbols](https://fonts.google.com/icons) on every button and link: they fill in and move on hover
@@ -49,24 +50,25 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 
 ```
 src/content/
-├── blog/       # hello-world.md  → /blog/hello-world/
-├── projects/   # interpreter.md  → /projects/interpreter/
-└── pages/      # about.md        → /about/
+├── posts/      # interpreter.md (tagged project) → /projects/interpreter/
+│               # hello-world.md (tagged blog)    → /blog/hello-world/
+└── pages/      # about.md                        → /about/
 ```
 
-Files whose name starts with `_` are ignored, and `draft: true` hides a post or project from the live site
+Files whose name starts with `_` are ignored, and `draft: true` hides a post from the live site
 (drafts still show in `npm run dev`).
 
-### Blog post
+### Post
 
-`src/content/blog/my-first-post.md`:
+Projects and blog posts are the same thing: a post in `src/content/posts/`. What makes one a project is the
+`project` tag. `src/content/posts/my-first-post.md`:
 
 ```markdown
 ---
 title: My first post
 date: 2026-11-01
-description: A short summary shown in lists, link previews and search results.
-tags: [Rust, Interpreters]
+description: A short summary shown in cards, lists, link previews and search results.
+tags: [blog, Rust, Interpreters]
 cover: /images/my-first-post.png   # optional
 ---
 
@@ -78,8 +80,8 @@ Add `updated: 2026-11-05` to show "Updated …" next to the date (it is also giv
 ### Starting from a template
 
 ```sh
-npm run new -- post "My first post"        # src/content/blog/my-first-post.md
-npm run new -- project "Tiny Calc"         # src/content/projects/tiny-calc.md
+npm run new -- post "My first post"        # src/content/posts/my-first-post.md, tagged blog
+npm run new -- project "Tiny Calc"         # src/content/posts/tiny-calc.md, tagged project
 npm run new -- tutorial "Writing a lexer"  # any file in templates/ works; math-notes too
 ```
 
@@ -160,6 +162,40 @@ caption: Optional caption
 
 Drag the divider, or focus it and use the arrow keys. Every other image in a post opens full screen when
 clicked, with arrow keys and swipes to move between images.
+
+### Tags: which posts go where
+
+The `tags` section of `site.config.js` decides where posts show up:
+
+```js
+tags: {
+  // Tags that get their own page. A post is on a page when it has any of the page's tags.
+  pages: [
+    { path: 'projects', title: 'Projects', tags: ['project'], layout: 'cards', sort: 'featured', icon: 'code', name: 'Project' },
+    { path: 'blog', title: 'Blog', tags: ['blog'], layout: 'list', icon: 'article', name: 'Post' },
+  ],
+  // The feeds on the home page, top to bottom.
+  home: [
+    { title: 'Featured', tags: ['project'], featured: true, limit: 1, layout: 'large' },
+    { title: 'Projects', tags: ['project'], sort: 'featured', limit: 4, layout: 'cards', link: '/projects/' },
+    { title: 'Latest writing', tags: ['blog'], limit: 4, layout: 'list', link: '/blog/' },
+  ],
+  // Every tag gets a page at /tags/<tag>/, /tags/ lists them all, and tags on posts are clickable.
+  tagPages: true,
+},
+```
+
+- **Add a page for a tag**: add `{ path: 'talks', title: 'Talks', tags: ['talk'] }` to `pages` and tag posts with
+  `talk`. They then live at `/talks/<name>/`. Add `{ label: 'Talks', href: '/talks/' }` to `nav` to show it in the
+  top bar.
+- **Add a feed to the home page**: add `{ title: 'Talks', tags: ['talk'], limit: 3, link: '/talks/' }` to `home`.
+  A post shown in one feed is left out of the feeds below it, unless that feed says `repeat: true`.
+- Leave `tags` out to include every post, and use `exclude: ['draft-ideas']` to leave posts with a tag out.
+- `layout` is `'cards'` (tiles with the cover image), `'list'` (rows) or `'large'` (one big tile per post).
+- `sort` is `'date'` (newest first) or `'featured'` (`featured: true` first, then `order`, then newest).
+- A post's address is under the first page in `pages` that it is on. Posts on no page live at `/posts/<name>/`
+  and still show up on their tag pages and in search.
+- Tags match whatever their case, so `Rust` and `rust` are one tag.
 
 ### Page
 
@@ -357,9 +393,9 @@ Links to other websites open in a new tab and get a small arrow; links within th
 
 ### Linking to other posts and projects
 
-`[[interpreter]]` links to the project or post called `interpreter.md` and uses its title as the link text.
-Use `[[interpreter|custom text]]` for your own text, and `[[blog/name]]` or `[[projects/name]]` when a post and a
-project share a name. A reference to something that doesn't exist fails the build, so links never break.
+`[[interpreter]]` links to the post called `interpreter.md` and uses its title as the link text.
+Use `[[interpreter|custom text]]` for your own text, and `[[posts/name]]` or `[[pages/name]]` when a post and a
+page share a name. A reference to something that doesn't exist fails the build, so links never break.
 Every page lists the pages that link to it under "Referenced by".
 
 ### Goodnotes and other PDFs
@@ -424,14 +460,16 @@ locally (without it the build still works, just without the PDF and preview imag
 
 ### Project
 
+A project is a post tagged `project`, with a few extra fields:
+
 ```markdown
 ---
 title: My Interpreter
-summary: One or two sentences for the project card.
+description: One or two sentences for the project card.
 date: 2026-10-20
-tags: [Rust, WebAssembly]
+tags: [project, Rust, WebAssembly]
 cover: /images/interpreter.svg
-featured: true                       # featured projects come first; the first one is the big tile on the home page
+featured: true                       # shows in the Featured feed on the home page and first on Projects
 status: active                       # optional badge: active, maintained, experimental, paused, finished or archived
 source: https://github.com/ReelPlum/my-interpreter   # adds a "View source" button
 link: https://example.com            # optional "Visit" button
@@ -449,7 +487,7 @@ stdout / stderr appears in the console.
    cargo build --release --target wasm32-wasip1
    ```
 2. Copy `target/wasm32-wasip1/release/<name>.wasm` to `public/wasm/interpreter/interpreter.wasm`.
-3. Point the project at it (already set up in `src/content/projects/interpreter.md`):
+3. Point the project at it (already set up in `src/content/posts/interpreter.md`):
    ```yaml
    demo:
      type: wasi
@@ -502,7 +540,7 @@ Each post's version history needs the full git history when building; the deploy
 
 
 `site.config.js` holds your name, tagline, email (used as a `mailto:` link on the contact page), social links, the
-navigation and the link to this repository.
+navigation, the link to this repository and which tags get pages and home page feeds (see above).
 
 ## Running locally
 

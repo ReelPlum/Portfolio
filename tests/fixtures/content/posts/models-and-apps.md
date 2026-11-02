@@ -2,7 +2,7 @@
 title: Models and apps
 date: 2026-09-01
 description: A 3D model, WebAssembly canvas apps and file views.
-tags: [Graphics]
+tags: [blog, Graphics]
 ---
 
 ## A model
