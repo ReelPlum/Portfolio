@@ -10,7 +10,7 @@ test('navigation is reachable on a phone', async ({ page }) => {
 });
 
 test('no horizontal scrolling', async ({ page }) => {
-  for (const path of ['', 'projects/tiny-calc/', 'blog/hello-world/']) {
+  for (const path of ['', 'projects/tiny-calc/', 'blog/hello-world/', 'blog/product-review/']) {
     await page.goto(path);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow, path).toBeLessThanOrEqual(0);

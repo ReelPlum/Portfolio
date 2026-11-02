@@ -10,6 +10,7 @@ import { remarkReferences } from './src/lib/remark-references.js';
 import { rehypeBaseUrls } from './src/lib/rehype-base-urls.js';
 import { remarkLatexPreamble, rehypeKatexPerPost } from './src/lib/remark-latex-preamble.js';
 import { remarkCode } from './src/lib/remark-code.js';
+import { remarkProducts } from './src/lib/remark-products.js';
 import { rehypeDownloadLinks } from './src/lib/rehype-download-links.js';
 import { rehypeExternalLinks } from './src/lib/rehype-external-links.js';
 import { buildTargets } from './src/lib/references.js';
@@ -32,6 +33,8 @@ const base = process.env.BASE_PATH || site.base;
 // Where code files included with a path on its own line (e.g. /code/main.rs) are read from.
 const publicDirs = [fileURLToPath(new URL('./public/', import.meta.url)), ...(fixturePublic ? [fixturePublic] : [])];
 const siteUrl = process.env.SITE_URL || site.url;
+// Products used by more than one post (`use: name` in a ```product block).
+const productsDir = fileURLToPath(new URL(`./${contentDir}/products/`, import.meta.url));
 const targets = buildTargets(fileURLToPath(new URL(`./${contentDir}/`, import.meta.url)));
 
 export default defineConfig({
@@ -43,7 +46,7 @@ export default defineConfig({
   integrations: [mdx(), sitemap({ filter: (page) => !/\/search\/$/.test(page) }), copyFixturePublic, searchEmbeddings()],
   markdown: {
     processor: unified({
-      remarkPlugins: [remarkLatexPreamble, [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
+      remarkPlugins: [remarkLatexPreamble, [remarkProducts, { base, productsDir, affiliates: site.affiliates, author: site.author }], [remarkCode, { publicDirs, base }], remarkMath, [remarkEmbeds, { base, publicDirs }], [remarkReferences, { targets, base }]],
       rehypePlugins: [[rehypeKatexPerPost, { strict: false, throwOnError: false }], [rehypeBaseUrls, { base }], [rehypeExternalLinks, { site: siteUrl, base }], [rehypeDownloadLinks, { publicDirs, base }]],
     }),
     // Code blocks are highlighted by src/lib/remark-code.js (adds the language label and copy button).

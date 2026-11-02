@@ -56,6 +56,8 @@ const ogImage = image ? absolute(image.startsWith('/') && !image.startsWith(base
       if (document.querySelector('[data-pdf]')) import('../lib/pdf-viewer.js').then((m) => m.renderAllPdfs());
       // 3D models and WebAssembly canvas apps load their code only on pages that have one.
       if (document.querySelector('[data-model]')) import('@google/model-viewer');
+      // Product boxes show the stores for the reader's country.
+      if (document.querySelector('[data-product]')) import('../lib/product-client.js').then((m) => m.setupProducts());
       if (document.querySelector('[data-canvas]')) import('../lib/canvas-embed.js').then((m) => m.setupCanvases());
       // Copy buttons on code blocks.
       document.addEventListener('click', async (event) => {

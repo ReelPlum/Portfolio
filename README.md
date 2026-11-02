@@ -25,6 +25,7 @@ My personal portfolio and blog, built with [Astro](https://astro.build) (JavaScr
 - PDFs (for example Goodnotes exports) shown inline, page by page
 - Live, in-browser project demos from WebAssembly (made for a Rust interpreter that prints to stdout)
 - YouTube, Vimeo, video files and images inside posts
+- Product reviews with a rating, pros and cons, and affiliate links and prices for the stores in the reader's country
 - Search-engine friendly: static HTML, sitemap, `robots.txt`, RSS, Open Graph tags and JSON-LD structured data
 - Unit tests (Vitest) and browser tests (Playwright), run on every push
 
@@ -214,6 +215,55 @@ https://vimeo.com/VIDEO_ID
 ```
 
 A link inside a sentence stays a normal link.
+
+### Product reviews and affiliate links
+
+A `product` block in a post becomes a review box with your rating, verdict, pros and cons, and a "Where to buy"
+list with each store's price on the day you checked it. Readers only see the stores for their country, and can pick
+another country (or "All countries") from the box.
+
+````markdown
+```product
+name: WH-1000XM5
+brand: Sony
+image: /images/xm5.jpg
+rating: 4.5                 # out of 5 (add `outOf: 10` for another scale)
+verdict: The best noise cancelling I've tried, but the case is huge.
+pros: [Very quiet, 30 hour battery]
+cons: [Bulky case]
+checked: 2026-10-30         # when you looked up the prices (defaults to the post's date)
+asin: B09XS7JWHH            # the code after /dp/ in an Amazon link, for `amazon:` offers
+offers:
+  - store: Elgiganten
+    url: https://www.elgiganten.dk/product/...   # your affiliate link
+    price: 2499
+    currency: DKK
+    regions: [DK]
+  - amazon: de              # link built from `asin` and your Amazon.de tracking ID in site.config.js
+  - store: Sony
+    url: https://electronics.sony.com/...
+    price: 399.99
+    currency: USD
+    regions: [US, CA]
+    note: Refurbished       # optional extra line
+```
+````
+
+- **`regions`** takes two-letter country codes (`DK`, `US`, `GB` or `UK`), the groups `EU` and `Nordics`, or
+  `worldwide` (the default when you leave it out). A typo fails the build.
+- **Prices** can be written as `2499`, `"£279.99"` or `"1.299,00 kr."`, and are shown in the reader's own number
+  format next to the date you checked them. Leave `price` out to show "See price".
+- **The reader's country** is worked out in their browser from their time zone and language settings. Nothing is
+  sent anywhere. If none of your stores sell there, every store is shown with a note. `?region=US` at the end of the
+  address shows another country's stores (handy for checking).
+- **Amazon:** `amazon: de` (or `com`, `co.uk`, `fr`, `se`, ...) links to that Amazon store and ships to its country
+  by default. Put your tracking ID for each Amazon store you've joined in `affiliates.amazon` in `site.config.js`.
+  Amazon's rules don't allow showing Amazon prices you typed in yourself, so leave `price` off Amazon offers.
+- **Same product in several posts:** put the fields in `src/content/products/<name>.yaml` and write `use: <name>` in
+  the block. Fields in the block (like a different `verdict`) override the file.
+
+Store links get `rel="sponsored"` (what Google asks for on affiliate links), and the box ends with the disclosure
+from `affiliates.disclosure` in `site.config.js`. Search engines also get the rating and prices as structured data.
 
 ### Project
 

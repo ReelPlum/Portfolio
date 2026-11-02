@@ -16,6 +16,18 @@ export default {
     // TODO: your LinkedIn profile URL
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/your-profile/', icon: 'linkedin' },
   ],
+  // Product reviews (```product blocks in posts). See "Product reviews" in README.md.
+  affiliates: {
+    // Shown under every list of stores. Most countries require you to say that links are affiliate links.
+    disclosure: 'Some of these are affiliate links: if you buy something, I may earn a small commission at no extra cost to you.',
+    // Your Amazon Associates tracking ID for each Amazon store you've joined, used by offers that say
+    // `amazon: de` etc. Stores without one link to the product without a tracking ID.
+    amazon: {
+      // de: 'yourtag-21',
+      // 'co.uk': 'yourtag-21',
+      // com: 'yourtag-20',
+    },
+  },
   nav: [
     { label: 'Projects', href: '/projects/' },
     { label: 'Blog', href: '/blog/' },
