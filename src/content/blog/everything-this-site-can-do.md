@@ -1,7 +1,8 @@
 ---
 title: Everything this site can do
 date: 2026-10-30
-description: "One post that uses every feature: images, videos, PDFs, 3D models, WebAssembly apps, maths with macros, code, file views, downloads, references and links."
+updated: 2026-11-02
+description: "One post that uses every feature: images, videos, PDFs, 3D models, WebAssembly apps, maths, sliders, code, diffs, diagrams, charts, citations, callouts, sidenotes and more."
 tags: [Meta]
 ---
 
@@ -20,6 +21,29 @@ Posts are markdown files in `src/content/blog/` and projects are in `src/content
 Write `![Description](/images/file.png)` with the file in `public/images/`:
 
 ![The interpreter's logo](/images/interpreter.svg)
+
+Click an image to see it full screen. With several images in a post, the arrow keys or a swipe move
+between them, and Escape closes the viewer.
+
+### Before and after
+
+A `compare` block puts two images on top of each other with a divider you can drag, or move with the
+arrow keys once it has focus:
+
+````md
+```compare
+before: /images/sphere-flat.png | Flat
+after: /images/sphere-lit.png | Lit
+alt: A sphere, with and without lighting
+```
+````
+
+```compare
+before: /images/sphere-flat.png | Flat
+after: /images/sphere-lit.png | Lit
+alt: A blue sphere, with and without lighting
+caption: The same sphere before and after adding diffuse and specular light.
+```
 
 ## Videos
 
@@ -65,6 +89,63 @@ in the post can use them. For every $x \in \R^n$ the triangle inequality says
 $\norm{x + y} \le \norm{x} + \norm{y}$, and $\abs{\langle x, y \rangle} \le \norm{x}\,\norm{y}$ is
 Cauchy–Schwarz. Boxes work too: $\boxed{E = mc^2}$ and $\fbox{text in a box}$.
 
+### Numbered equations, theorems and proofs
+
+Put `\label{name}` in a display formula to number it, and write `\eqref{name}` anywhere to link to it.
+The Gaussian integral
+$$
+\int_{-\infty}^{\infty} e^{-a x^2} \dd x = \sqrt{\frac{\pi}{a}} \label{gauss}
+$$
+gives \eqref{gauss}, and with $a = 1$ it becomes the formula above.
+
+Theorems, lemmas, corollaries and definitions are blockquotes that start with `[!THEOREM]` and so on.
+They are numbered together, and `\ref{name}` links to one:
+
+> [!DEFINITION] Norm \label{def-norm}
+> A norm on $\R^n$ is a function $\norm{\cdot}$ with $\norm{x} = 0 \iff x = 0$,
+> $\norm{\lambda x} = \abs{\lambda}\norm{x}$ and $\norm{x + y} \le \norm{x} + \norm{y}$.
+
+> [!THEOREM] Cauchy–Schwarz \label{thm-cs}
+> For all $x, y \in \R^n$, $\abs{\langle x, y \rangle} \le \norm{x}\,\norm{y}$.
+
+> [!PROOF]
+> If $y = 0$ both sides are zero. Otherwise $0 \le \norm{x - t y}^2$ for every real $t$; choosing
+> $t = \langle x, y \rangle / \norm{y}^2$ and expanding gives the inequality.
+
+Theorem \ref{thm-cs} uses the Euclidean norm, which is a norm in the sense of Definition \ref{def-norm}.
+
+### Sliders
+
+A `vars` block makes sliders, and their values update live wherever they are used: as `` `=a` `` in
+text, as `\var{a}` in formulas, and in `fnplot` function plots.
+
+````md
+```vars
+a = 1.5 range 0..3 step 0.1 Amplitude
+k = 2 range 1..6 step 1 Frequency
+```
+````
+
+```vars
+a = 1.5 range 0..3 step 0.1 Amplitude
+k = 2 range 1..6 step 1 Frequency
+d = 0.2 range 0..1 step 0.05 Damping
+```
+
+The wave below has amplitude `=a` and repeats every `=2*pi/k` units; after one period it has shrunk to
+`=a*exp(-d*2*pi/k)`.
+
+$$
+y = \var{a}\, e^{-\var{d} x} \sin(\var{k} x)
+$$
+
+```fnplot
+y: a*exp(-d*x)*sin(k*x), a*exp(-d*x), -a*exp(-d*x)
+x: 0..3*pi
+y-range: -3..3
+title: A damped wave and its envelope
+```
+
 ## Code
 
 Fenced code gets highlighting, a language label and a copy button:
@@ -81,6 +162,41 @@ A path to a source file on its own line includes the file (here, only the token 
 
 There's more on this in [[code-blocks|Showing code on this site]].
 
+### Changes to code
+
+A `diff` block shows a change side by side or in one column, with highlighting. Paste a unified diff, or
+name two files and the site works out the difference:
+
+````md
+```diff
+from: /code/interpreter/history/eval-v1.rs
+to: /code/interpreter/history/eval-v2.rs
+```
+````
+
+```diff title="Errors instead of panics"
+from: /code/interpreter/history/eval-v1.rs
+to: /code/interpreter/history/eval-v2.rs
+```
+
+```diff lang=rust title="A pasted diff"
+@@ -3,3 +3,3 @@ fn eval
+-        Expr::Var(name) => env.get(name).unwrap().clone(),
++        Expr::Var(name) => env.get(name).cloned().ok_or(Error::Undefined)?,
+```
+
+### Diagrams
+
+A `mermaid` block draws a diagram in the colours of the current light or dark mode:
+
+```mermaid title="How the interpreter runs a program"
+graph LR
+  S[Source code] --> L[Lexer]
+  L -->|tokens| P[Parser]
+  P -->|syntax tree| E[Evaluator]
+  E --> O[Output]
+```
+
 ## Files
 
 Text files show their contents, and CSV files become a table. Put them anywhere in `public/` and write
@@ -89,6 +205,58 @@ the path on its own line:
 /files/interpreter-notes.txt
 
 /files/benchmarks.csv
+
+## Charts from CSV files
+
+A `plot` block draws a chart from a CSV file in `public/`. Pick the type (`line`, `bar` or `scatter`), the
+column for the x axis and up to three columns for y. Charts are drawn when the site is built, follow light and
+dark mode, and have a "Show the data" table:
+
+```plot
+file: /files/fib-timings.csv
+type: line
+x: n
+y: Tree-walking (ms), Bytecode (ms)
+title: Time to compute fib(n)
+x-label: n
+y-label: Milliseconds
+```
+
+```plot
+file: /files/benchmarks.csv
+type: bar
+x: Program
+y: Tree-walking (ms), Bytecode (ms)
+title: Run time per benchmark
+y-label: Milliseconds
+```
+
+## Notes, footnotes and citations
+
+> [!NOTE]
+> Callouts are blockquotes that start with `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]` or
+> `[!CAUTION]`. Add words after the marker to give one its own title.
+
+> [!WARNING] Drafts stay private
+> A post with `draft: true` shows up in `npm run dev` but never on the live site.
+
+Footnotes use `[^name]`.[^margin] On a wide screen they sit in the margin next to the text, like
+sidenotes in a book; on a phone they collect at the end of the post.[^phone]
+
+[^margin]: This one is in the margin if your screen is wide enough.
+[^phone]: Tap the number to jump to it, and the arrow to jump back.
+
+Citations are keys from a BibTeX file in square brackets: `[@nystrom2021]` gives [@nystrom2021], and
+several at once with a page work too [@abelson1996, ch. 4; @turing1936]. Keys come from
+`src/content/references.bib`, or a post's own `bibliography:` file, and the list of references at the end
+is made for you. A key that isn't in any file stops the build.
+
+## Snippets
+
+Text you reuse goes in `src/content/snippets/`, and `{{snippet name}}` on its own line puts it in a post.
+Values like `what="closures"` fill in `{{what}}` inside the snippet:
+
+{{snippet try-the-interpreter what="the examples from this post"}}
 
 ## Downloads
 

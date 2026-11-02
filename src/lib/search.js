@@ -49,7 +49,7 @@ export function renderParts(text, ranges = []) {
 export function markdownToText(md = '') {
   // Protect math first so markdown clean-up (e.g. "_" emphasis) can't mangle x_1 or a*b.
   const math = [];
-  const protectedMd = stripPreambleBlocks(md).replace(MATH_RE, (m) => `\u0000${math.push(m) - 1}\u0000`);
+  const protectedMd = stripPreambleBlocks(md).replace(/^(`{3,})[ \t]*plot[ \t]*\n[\s\S]*?\n\1[ \t]*$/gm, '').replace(MATH_RE, (m) => `\u0000${math.push(m) - 1}\u0000`);
   return protectedMd
     .replace(/^---[\s\S]*?\n---\n/, '') // frontmatter
     .replace(/```[^\n]*\n([\s\S]*?)```/g, '$1') // keep code, drop fences

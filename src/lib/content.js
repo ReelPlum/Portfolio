@@ -45,3 +45,10 @@ export function isActive(href, current) {
   const c = norm(current);
   return h === '/' ? c === '/' : c.startsWith(h);
 }
+
+/** The "updated" date to show, only when it is a later day than the publish date. */
+export function updatedDate(data) {
+  if (!data.updated) return null;
+  const day = (d) => new Date(d).toISOString().slice(0, 10);
+  return day(data.updated) > day(data.date) ? data.updated : null;
+}

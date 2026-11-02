@@ -75,3 +75,14 @@ describe('templates', () => {
     for (const f of files('src')) expect(readFileSync(f, 'utf8'), f).not.toMatch(/"-[a-z]+=/);
   });
 });
+
+// Regression: rehype-katex brought its own older KaTeX, whose HTML (class "tag") didn't match the
+// stylesheet of the KaTeX we load (".katex-tag"), so equation numbers weren't placed at the right edge.
+describe('KaTeX versions', () => {
+  it('pages are rendered with the same KaTeX as the stylesheet', async () => {
+    const { createRequire } = await import('node:module');
+    const root = createRequire(import.meta.url);
+    const fromRehype = createRequire(new URL('../../node_modules/rehype-katex/package.json', import.meta.url));
+    expect(fromRehype('katex/package.json').version).toBe(root('katex/package.json').version);
+  });
+});

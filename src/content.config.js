@@ -11,10 +11,12 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(), // shown as "Updated …" when later than date
     description: z.string().optional(),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
-    draft: z.boolean().default(false),
+    draft: z.boolean().default(false), // only shown by `npm run dev`
+    bibliography: z.union([z.string(), z.array(z.string())]).optional(), // .bib files in public/ for [@key] citations
   }),
 });
 
@@ -52,6 +54,7 @@ const projects = defineCollection({
     title: z.string(),
     summary: z.string(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
     tags: z.array(z.string()).default([]),
     cover: z.string().optional(),
     source: z.string().url().optional(), // "View source" button
@@ -59,6 +62,7 @@ const projects = defineCollection({
     featured: z.boolean().default(false),
     order: z.number().default(0),
     demo: demo.optional(),
+    bibliography: z.union([z.string(), z.array(z.string())]).optional(),
     draft: z.boolean().default(false),
   }),
 });

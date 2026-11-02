@@ -19,13 +19,14 @@ export function websiteLd(site, siteUrl) {
   return { '@context': 'https://schema.org', '@type': 'WebSite', name: site.title, url: siteUrl, description: site.description };
 }
 
-export function blogPostingLd({ title, description, date, url, image, author }) {
+export function blogPostingLd({ title, description, date, updated, url, image, author }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: title,
     description,
     datePublished: new Date(date).toISOString(),
+    ...(updated ? { dateModified: new Date(updated).toISOString() } : {}),
     url,
     mainEntityOfPage: url,
     ...(image ? { image } : {}),
@@ -33,13 +34,14 @@ export function blogPostingLd({ title, description, date, url, image, author }) 
   };
 }
 
-export function projectLd({ title, summary, date, url, image, source, author, tags = [] }) {
+export function projectLd({ title, summary, date, updated, url, image, source, author, tags = [] }) {
   return {
     '@context': 'https://schema.org',
     '@type': source ? 'SoftwareSourceCode' : 'CreativeWork',
     name: title,
     description: summary,
     dateCreated: new Date(date).toISOString(),
+    ...(updated ? { dateModified: new Date(updated).toISOString() } : {}),
     url,
     keywords: tags.join(', '),
     ...(image ? { image } : {}),
