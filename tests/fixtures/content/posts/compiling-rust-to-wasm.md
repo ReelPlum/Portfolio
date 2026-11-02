@@ -2,7 +2,7 @@
 title: Running Rust in the browser with WASI
 date: 2026-10-12
 description: How a Rust program that just prints can run on a static website.
-tags: [Rust, WebAssembly]
+tags: [blog, Rust, WebAssembly]
 ---
 
 If your program reads a file and prints to stdout, compile it with

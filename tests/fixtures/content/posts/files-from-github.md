@@ -2,7 +2,7 @@
 title: Files from GitHub
 date: 2026-09-15
 description: Code, files, embeds and downloads pulled in from another (private) repository.
-tags: [GitHub]
+tags: [blog, GitHub]
 cover: https://github.com/octo-dev/secret-lab/blob/v1/assets/cover.svg
 ---
 

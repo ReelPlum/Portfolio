@@ -1,9 +1,10 @@
 import rss from '@astrojs/rss';
 import site from '../../site.config.js';
-import { getPosts } from '../lib/queries.js';
+import { getAllPosts, urlOf } from '../lib/queries.js';
+import { summaryOf } from '../lib/tags.js';
 
 export async function GET(context) {
-  const posts = await getPosts();
+  const posts = await getAllPosts();
   return rss({
     title: site.title,
     description: site.description,
@@ -11,8 +12,9 @@ export async function GET(context) {
     items: posts.map((post) => ({
       title: post.data.title,
       pubDate: post.data.date,
-      description: post.data.description,
-      link: `blog/${post.id}/`,
+      description: summaryOf(post) || undefined,
+      categories: post.data.tags,
+      link: urlOf(post).slice(1),
     })),
   });
 }

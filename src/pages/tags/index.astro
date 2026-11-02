@@ -1,0 +1,23 @@
+---
+// Every tag, most used first. Only built when `tags.tagPages` is on in site.config.js.
+import Base from '../../layouts/Base.astro';
+import { getAllPosts, tagConfig } from '../../lib/queries.js';
+import { tagCounts, tagHref } from '../../lib/tags.js';
+import { withBase } from '../../lib/content.js';
+export async function getStaticPaths() {
+  return tagConfig.tagPages ? [{ params: {} }] : [];
+}
+const base = import.meta.env.BASE_URL;
+const tags = tagCounts(await getAllPosts());
+---
+<Base title="Tags" description="Everything on this site, by topic.">
+  <header class="page-header">
+    <h1>Tags</h1>
+    <p class="lede">Everything on this site, by topic.</p>
+  </header>
+  <ul class="tag-cloud">
+    {tags.map(({ tag, count }) => (
+      <li><a class="tag tag-link" href={withBase(tagHref(tag, tagConfig), base)}>{tag}<span class="tag-count">{count}</span></a></li>
+    ))}
+  </ul>
+</Base>

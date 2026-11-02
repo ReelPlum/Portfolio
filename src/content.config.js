@@ -10,18 +10,6 @@ const md = '**/[^_]*.{md,mdx}'; // files starting with _ are ignored (drafts / p
 // The tests build the site from tests/fixtures/content so they don't depend on your real posts.
 const root = process.env.CONTENT_DIR || './src/content';
 
-const blog = defineCollection({
-  loader: glob({ pattern: md, base: `${root}/blog` }),
-  schema: z.object({
-    title: z.string(),
-    date: z.coerce.date(),
-    description: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    cover: file().optional(),
-    draft: z.boolean().default(false),
-  }),
-});
-
 const demo = z.discriminatedUnion('type', [
   // A WASI program (e.g. Rust built with `cargo build --target wasm32-wasip1 --release`).
   // Drop the .wasm into public/wasm/<project>/ and point `wasm` at it. Whatever it prints
@@ -50,19 +38,22 @@ const demo = z.discriminatedUnion('type', [
   z.object({ type: z.literal('iframe'), src: file(), height: z.number().default(520) }),
 ]);
 
-const projects = defineCollection({
-  loader: glob({ pattern: md, base: `${root}/projects` }),
+// Projects and blog posts are the same thing: a post. Its tags decide which pages and home page feeds it
+// shows up in (see `tags` in site.config.js).
+const posts = defineCollection({
+  loader: glob({ pattern: md, base: `${root}/posts` }),
   schema: z.object({
     title: z.string(),
-    summary: z.string(),
     date: z.coerce.date(),
+    description: z.string().optional(),
+    summary: z.string().optional(), // older name for description
     tags: z.array(z.string()).default([]),
     cover: file().optional(),
     source: z.string().url().optional(), // "View source" button
-    link: z.string().url().optional(),
+    link: z.string().url().optional(), // "Visit" button
     featured: z.boolean().default(false),
     order: z.number().default(0),
-    demo: demo.optional(),
+    demo: demo.optional(), // runnable playground at the top of the post
     draft: z.boolean().default(false),
   }),
 });
@@ -76,4 +67,4 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { blog, projects, pages };
+export const collections = { posts, pages };

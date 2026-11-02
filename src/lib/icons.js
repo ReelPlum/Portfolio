@@ -20,7 +20,7 @@ export const animations = {
   mail: 'wiggle', rss_feed: 'pulse', github: 'wiggle', linkedin: 'wiggle', link: 'wiggle',
   play_arrow: 'pop', restart_alt: 'spin-back', content_copy: 'pop', check: 'pop', menu: 'pop', close: 'spin',
   search: 'wiggle', calendar_today: 'bounce', terminal: 'pop', home: 'bounce', person: 'bounce', code: 'pop',
-  article: 'bounce', download: 'bounce', deployed_code: 'spin', view_in_ar: 'spin', table: 'pop', stars_2: 'pulse', schedule: 'spin',
+  article: 'bounce', download: 'bounce', deployed_code: 'spin', view_in_ar: 'spin', table: 'pop', stars_2: 'pulse', schedule: 'spin', sell: 'wiggle',
 };
 
 const cache = new Map();

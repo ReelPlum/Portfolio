@@ -1,17 +1,19 @@
 ---
 import Icon from './Icon.astro';
 import { withBase } from '../lib/content.js';
+import { urlOf } from '../lib/queries.js';
+import { summaryOf } from '../lib/tags.js';
 const { project, size = 'normal' } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const { title, summary, tags, cover, demo } = project.data;
-const href = withBase(`/projects/${project.id}/`, base);
+const { title, tags, cover, demo } = project.data;
+const href = withBase(urlOf(project), base);
 ---
 <article class={`project-card project-card--${size}`}>
   <a href={href} class="project-card-link" data-icon-trigger>
     {cover && <div class="project-card-media"><img src={withBase(cover, base)} alt="" loading="lazy" decoding="async" /></div>}
     <div class="project-card-body">
       <h3>{title}</h3>
-      <p class="project-card-summary">{summary}</p>
+      <p class="project-card-summary">{summaryOf(project)}</p>
       <div class="project-card-foot">
         {tags.length > 0 && <div class="tags">{tags.slice(0, 3).map((t) => <span class="tag">{t}</span>)}</div>}
         <span class="project-card-cta">{demo ? 'Try it' : 'Open'}<Icon name={demo ? 'play_arrow' : 'arrow_forward'} size={18} /></span>
