@@ -23,7 +23,7 @@ export function remarkProducts({ base = '/', productsDir = 'src/content/products
   const icons = {
     star: iconSvg('star', { size: 20 }), starHalf: iconSvg('star_half', { size: 20 }),
     pro: iconSvg('thumb_up', { size: 18 }), con: iconSvg('thumb_down', { size: 18 }),
-    cart: iconSvg('shopping_cart', { size: 18 }), location: iconSvg('location_on', { size: 18 }), info: iconSvg('info', { size: 16 }),
+    cart: iconSvg('shopping_cart', { size: 18 }), location: iconSvg('location_on', { size: 18 }), info: iconSvg('info', { size: 16 }), expand: iconSvg('expand_circle_down', { size: 18 }),
   };
   return (tree, file) => {
     const where = file?.path ? ` (in ${file.path})` : '';

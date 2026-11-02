@@ -21,7 +21,7 @@ export const animations = {
   play_arrow: 'pop', restart_alt: 'spin-back', content_copy: 'pop', check: 'pop', menu: 'pop', close: 'spin',
   search: 'wiggle', calendar_today: 'bounce', terminal: 'pop', home: 'bounce', person: 'bounce', code: 'pop',
   article: 'bounce', download: 'bounce', deployed_code: 'spin', view_in_ar: 'spin', table: 'pop', stars_2: 'pulse', schedule: 'spin', sell: 'wiggle',
-  shopping_cart: 'nudge-x', location_on: 'bounce', thumb_up: 'bounce', thumb_down: 'bounce', info: 'pop', star: 'spin', star_half: 'spin',
+  shopping_cart: 'nudge-x', location_on: 'bounce', thumb_up: 'bounce', thumb_down: 'bounce', info: 'pop', star: 'spin', star_half: 'spin', expand_circle_down: 'bounce',
 };
 
 const cache = new Map();

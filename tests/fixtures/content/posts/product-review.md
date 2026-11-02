@@ -37,9 +37,14 @@ offers:
     regions: [US, CA]
 ```
 
+These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box.
+
+These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box. These are the paragraphs that wrap around the review box.
+
 And a keyboard I keep coming back to:
 
 ```product
 use: test-keyboard
+view: full
 verdict: Overridden in this post.
 ```

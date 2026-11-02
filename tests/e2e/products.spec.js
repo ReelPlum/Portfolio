@@ -78,6 +78,26 @@ test('shows the review details and the shared product', async ({ page }) => {
   expect(JSON.parse(ld)).toMatchObject({ '@type': 'Product', name: 'Test Headphones X1', review: { reviewRating: { ratingValue: 4.5 } } });
 });
 
+test('the compact box sits at the right with the text flowing around it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(POST);
+  const card = await box(page).boundingBox();
+  const prose = await page.locator('.prose').boundingBox();
+  expect(card.width).toBeLessThan(360);
+  expect(card.x + card.width).toBeGreaterThan(prose.x + prose.width - 2);
+  // The paragraph after the box starts beside it, not below it.
+  const text = page.locator('.prose p', { hasText: 'paragraphs that wrap around' }).first();
+  const para = await text.boundingBox();
+  expect(para.y).toBeLessThan(card.y + card.height);
+  // Pros and cons open from a button; the full box shows them straight away.
+  await expect(box(page).locator('.product-pros')).toBeHidden();
+  await box(page).getByText('Pros and cons (3)').click();
+  await expect(box(page).locator('.product-pros')).toBeVisible();
+  const full = page.locator('[data-product]').nth(1);
+  await expect(full).toHaveClass(/product--full/);
+  expect((await full.boundingBox()).width).toBeGreaterThan(600);
+});
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 

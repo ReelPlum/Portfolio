@@ -117,6 +117,13 @@ describe('parseProduct', () => {
     expect(() => parseProduct(text)).toThrow(message);
   });
 
+  it('defaults to a compact box at the right, and checks view and align', () => {
+    expect(parseProduct('name: A')).toMatchObject({ view: 'compact', align: 'right' });
+    expect(parseProduct('name: A\nview: Full\nalign: left')).toMatchObject({ view: 'full', align: 'left' });
+    expect(() => parseProduct('name: A\nview: tiny')).toThrow(/view must be compact or full/);
+    expect(() => parseProduct('name: A\nalign: top')).toThrow(/align must be right, left or center/);
+  });
+
   it('allows a rating out of 10', () => {
     expect(parseProduct('name: A\nrating: 8\noutOf: 10')).toMatchObject({ rating: 8, outOf: 10 });
   });
@@ -186,6 +193,17 @@ describe('productHtml', () => {
     expect(html).toContain('>EU</span>');
     expect(html).toContain('Affiliate links.');
   });
+  it('folds pros and cons away in the compact box and shows them in the full one', () => {
+    const block = 'name: A\npros: [Fast]\ncons: [Loud]\noffers:\n  - store: Shop\n    url: https://shop.example';
+    const small = productHtml(parseProduct(block), { icons });
+    expect(small).toContain('class="product product--compact product--right"');
+    expect(small).toMatch(/<details class="product-more"><summary>.*Pros and cons \(2\)/);
+    expect(small).toContain('<span>Buy</span><span class="visually-hidden"> at Shop</span>');
+    const big = productHtml(parseProduct(`${block}\nview: full`), { icons });
+    expect(big).toContain('class="product product--full"');
+    expect(big).not.toContain('<details');
+    expect(big).toContain('<span>View at Shop</span>');
+  });
   // Regression: a product called "</script>" must not end the JSON-LD block and inject HTML.
   it('keeps the JSON-LD block closed', () => {
     const p = parseProduct('name: "</script><b>x</b>"');
@@ -203,7 +221,7 @@ const render = async (md, opts = {}) => String(await unified()
 describe('remarkProducts', () => {
   it('turns a ```product block into a review box', async () => {
     const html = await render('```product\nname: Thing\nimage: /images/t.png\noffers:\n  - store: S\n    url: https://s.example\n```', { base: '/Portfolio/' });
-    expect(html).toContain('<aside class="product" data-product');
+    expect(html).toContain('<aside class="product product--compact product--right" data-product');
     expect(html).toContain('src="/Portfolio/images/t.png"');
     expect(html).not.toContain('<pre');
   });

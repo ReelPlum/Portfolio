@@ -154,6 +154,12 @@ export function normalizeProduct(data, { shared = null, date = null, affiliates 
   const product = { name: String(merged.name) };
   for (const key of ['brand', 'image', 'verdict', 'asin', 'link']) if (merged[key] != null && merged[key] !== '') product[key] = String(merged[key]);
   if (merged.alt) product.alt = String(merged.alt);
+  // compact (the default) is a small box with pros and cons folded away; full shows everything.
+  product.view = String(merged.view ?? 'compact').toLowerCase();
+  if (!['compact', 'full'].includes(product.view)) throw new Error(`product "${product.name}": view must be compact or full, not "${merged.view}"`);
+  // Where a compact box sits: at the right or left with the post's text flowing around it, or on its own line.
+  product.align = String(merged.align ?? 'right').toLowerCase();
+  if (!['right', 'left', 'center'].includes(product.align)) throw new Error(`product "${product.name}": align must be right, left or center, not "${merged.align}"`);
   if (product.link) product.link = httpUrl(product.link, `product "${product.name}"`);
   if (merged.rating != null) {
     const max = Number(merged.outOf ?? 5);
@@ -236,7 +242,7 @@ function offerHtml(o, product, icons) {
     + `${o.note ? `<span class="product-note">${esc(o.note)}</span>` : ''}`
     + `<span class="product-offer-regions" data-region-label>${esc(where)}</span></div>`
     // rel="sponsored" tells search engines this is a paid link (Google asks for it on affiliate links).
-    + `<a class="btn btn-tonal product-buy" href="${esc(o.url)}" target="_blank" rel="sponsored noopener noreferrer" data-external="manual">${icons.cart}<span>View at ${esc(o.store)}</span><span class="visually-hidden"> (opens in a new tab)</span></a>`
+    + `<a class="btn btn-tonal product-buy" href="${esc(o.url)}" target="_blank" rel="sponsored noopener noreferrer" data-external="manual">${icons.cart}${product.view === 'full' ? `<span>View at ${esc(o.store)}</span>` : `<span>Buy</span><span class="visually-hidden"> at ${esc(o.store)}</span>`}<span class="visually-hidden"> (opens in a new tab)</span></a>`
     + '</li>';
 }
 
@@ -252,9 +258,15 @@ export function productHtml(product, { icons, disclosure, author, imageSrc } = {
   const pc = (items, cls, title, icon) => (items.length
     ? `<div class="product-${cls}"><h4>${title}</h4><ul>${items.map((t) => `<li>${icon}<span>${esc(t)}</span></li>`).join('')}</ul></div>`
     : '');
-  const proscons = product.pros.length || product.cons.length
+  const compact = product.view !== 'full';
+  let proscons = product.pros.length || product.cons.length
     ? `<div class="product-proscons">${pc(product.pros, 'pros', 'Good', icons.pro)}${pc(product.cons, 'cons', 'Not so good', icons.con)}</div>`
     : '';
+  // The compact box folds the pros and cons away behind a button.
+  if (proscons && compact) {
+    const count = product.pros.length + product.cons.length;
+    proscons = `<details class="product-more"><summary>${icons.expand || ''}<span>Pros and cons (${count})</span></summary>${proscons}</details>`;
+  }
   const regions = regionsOf(product.offers);
   const offers = product.offers.length
     ? `<div class="product-buy-section"><div class="product-buy-header"><h4 id="${id}-buy">Where to buy</h4>`
@@ -267,7 +279,8 @@ export function productHtml(product, { icons, disclosure, author, imageSrc } = {
   const name = product.link
     ? `<a href="${esc(product.link)}" target="_blank" rel="noopener noreferrer" data-external="manual">${esc(product.name)}</a>`
     : esc(product.name);
-  return `<aside class="product" data-product aria-label="${esc(`Review: ${product.name}`)}">`
+  const cls = compact ? `product--compact product--${product.align}` : 'product--full';
+  return `<aside class="product ${cls}" data-product aria-label="${esc(`Review: ${product.name}`)}">`
     + `<div class="product-head">${img}<div class="product-title">`
     + `${product.brand ? `<p class="product-brand">${esc(product.brand)}</p>` : ''}<h3 class="product-name">${name}</h3>${rating}`
     + `${product.verdict ? `<p class="product-verdict">${esc(product.verdict)}</p>` : ''}</div></div>`

@@ -255,7 +255,10 @@ A link inside a sentence stays a normal link.
 ### Product reviews and affiliate links
 
 A `product` block in a post becomes a review box with your rating, verdict, pros and cons, and a "Where to buy"
-list with each store's price on the day you checked it. Readers only see the stores for their country, and can pick
+list with each store's price on the day you checked it. The box is a narrow card at the right of the text, and your paragraphs flow
+around it (like an infobox), with the pros and cons folded behind a "Pros and cons" button. Add `align: left` to
+put it on the left, `align: center` to give it its own line, or `view: full` for a full-width box that shows
+everything. On phones the card takes the full width. Readers only see the stores for their country, and can pick
 another country (or "All countries") from the box.
 
 ````markdown
@@ -267,6 +270,8 @@ rating: 4.5                 # out of 5 (add `outOf: 10` for another scale)
 verdict: The best noise cancelling I've tried, but the case is huge.
 pros: [Very quiet, 30 hour battery]
 cons: [Bulky case]
+# view: full              # full-width box instead of the small card
+# align: left             # card at the left of the text (right is the default; center for its own line)
 checked: 2026-10-30         # when you looked up the prices (defaults to the post's date)
 asin: B09XS7JWHH            # the code after /dp/ in an Amazon link, for `amazon:` offers
 offers:

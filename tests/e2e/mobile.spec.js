@@ -29,3 +29,10 @@ test('search works on a phone', async ({ page }) => {
   await page.getByRole('searchbox').fill('calc');
   await expect(page.locator('.search-panel .search-result').first()).toContainText('Tiny Calc');
 });
+
+test('a product box takes the full width on a phone instead of sitting beside the text', async ({ page }) => {
+  await page.goto('posts/product-review/');
+  const card = await page.locator('[data-product]').first().boundingBox();
+  const prose = await page.locator('.prose').boundingBox();
+  expect(card.width).toBeGreaterThan(prose.width - 2);
+});
