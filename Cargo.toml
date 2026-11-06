@@ -1,8 +1,8 @@
 [workspace]
 resolver = "3"
 members = ["crates/api", "crates/render", "crates/server", "crates/client", "crates/app"]
-# The Mac app needs macOS to build, so plain `cargo build` / `cargo test` skip it.
-default-members = ["crates/api", "crates/render", "crates/server", "crates/client"]
+# The Mac app's window code is compiled on macOS only (see crates/app/Cargo.toml).
+default-members = ["crates/api", "crates/render", "crates/server", "crates/client", "crates/app"]
 
 [workspace.package]
 edition = "2024"
