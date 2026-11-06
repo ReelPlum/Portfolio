@@ -14,7 +14,7 @@ jobs:
           - 27017:27017
         # Wait until MongoDB answers before the tests start.
         options: >-
-          --health-cmd "mongosh --quiet --eval 'db.runCommand({ ping: 1 })'"
+          --health-cmd "mongosh --quiet --eval 1"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
