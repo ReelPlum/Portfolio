@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       mongo:
-        image: mongo:8
+        # MongoDB 8.x exits on Linux kernels 6.19 to 7.0.13 (SERVER-121912); 7.0 runs everywhere.
+        image: mongo:7.0
         ports:
           - 27017:27017
         # Wait until MongoDB answers before the tests start.

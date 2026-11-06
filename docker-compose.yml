@@ -31,7 +31,9 @@ services:
       - mongo
 
   mongo:
-    image: mongo:8
+    # MongoDB 8.x refuses to start on Linux kernels 6.19 to 7.0.13 (SERVER-121912),
+    # which new VPS images may ship. 7.0 runs on every kernel and is supported until 2027.
+    image: mongo:7.0
     restart: unless-stopped
     # Keep MongoDB's memory cache small so it fits next to everything else.
     command: ["--wiredTigerCacheSizeGB", "0.25"]

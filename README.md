@@ -49,7 +49,7 @@ Raw HTML in a post is shown as text, never run.
 
 ## Running locally
 
-You need Rust and MongoDB (for example `docker run -d -p 27017:27017 mongo:8`).
+You need Rust and MongoDB (for example `docker run -d -p 27017:27017 mongo:7.0`).
 
 ```sh
 cargo run -p server -- seed   # adds example authors and posts to an empty database
