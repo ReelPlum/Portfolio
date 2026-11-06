@@ -1,7 +1,7 @@
 //! `server seed`: fills an empty database with example authors and posts, for
 //! trying the site locally before the Mac app can publish.
 
-use chrono::{Duration, Utc};
+use chrono::Duration;
 use mongodb::bson::{doc, oid::ObjectId};
 
 use crate::db::{Author, Db, Link, Post};
@@ -52,7 +52,7 @@ pub async fn run(db: &Db) -> anyhow::Result<()> {
         ),
     ];
 
-    let now = Utc::now();
+    let now = crate::db::now();
     for (i, (title, tags, authors, markdown)) in samples.into_iter().enumerate() {
         let r = render::render(markdown);
         let post = Post {

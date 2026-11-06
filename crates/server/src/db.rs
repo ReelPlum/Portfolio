@@ -52,6 +52,7 @@ pub struct Post {
     pub markdown: String,
     #[serde(default)]
     pub html: String,
+    #[serde(default)]
     pub excerpt_html: String,
     #[serde(default)]
     pub has_math: bool,
@@ -83,6 +84,8 @@ pub struct PostView {
 pub struct Db {
     pub posts: Collection<Post>,
     pub authors: Collection<Author>,
+    pub admin: Collection<crate::auth::AdminDoc>,
+    pub tokens: Collection<crate::auth::TokenDoc>,
 }
 
 pub const PAGE_SIZE: u64 = 10;
@@ -92,6 +95,8 @@ impl Db {
         Self {
             posts: db.collection("posts"),
             authors: db.collection("authors"),
+            admin: db.collection("admin"),
+            tokens: db.collection("tokens"),
         }
     }
 
@@ -119,6 +124,19 @@ impl Db {
                 IndexModel::builder()
                     .keys(doc! { "slug": 1 })
                     .options(unique())
+                    .build(),
+            )
+            .await?;
+        // MongoDB deletes expired login tokens by itself.
+        self.tokens
+            .create_index(
+                IndexModel::builder()
+                    .keys(doc! { "expires_at": 1 })
+                    .options(
+                        IndexOptions::builder()
+                            .expire_after(std::time::Duration::ZERO)
+                            .build(),
+                    )
                     .build(),
             )
             .await?;
@@ -217,5 +235,28 @@ mod opt_bson_datetime {
 
     pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Option<DateTime<Utc>>, D::Error> {
         Ok(Option::<bson::DateTime>::deserialize(d)?.map(|dt| dt.to_chrono()))
+    }
+}
+
+/// The current time at the millisecond precision MongoDB stores, so a value
+/// returned right after saving equals the value read back later.
+pub fn now() -> DateTime<Utc> {
+    use chrono::DurationRound;
+    Utc::now()
+        .duration_trunc(chrono::Duration::milliseconds(1))
+        .expect("truncating to milliseconds cannot overflow")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Regression: timestamps were returned with nanoseconds but stored with
+    // milliseconds, so the app saw a different `published_at` after reload.
+    #[test]
+    fn now_survives_a_bson_round_trip() {
+        let t = now();
+        let back = mongodb::bson::DateTime::from_chrono(t).to_chrono();
+        assert_eq!(t, back);
     }
 }

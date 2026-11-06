@@ -26,6 +26,7 @@ services:
       MONGODB_URI: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/?authSource=admin
       MONGODB_DB: portfolio
       RUST_LOG: info
+      TRUST_PROXY: "1"
     depends_on:
       - mongo
 

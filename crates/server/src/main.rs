@@ -1,54 +1,14 @@
-//! The portfolio website.
-
-mod components;
-mod config;
-mod db;
-mod pages;
-mod security;
-mod seed;
+//! Runs the website.
+//!
+//! - `server`               serve the site
+//! - `server seed`          add example authors and posts to an empty database
+//! - `server set-password`  set the password the Mac app logs in with (read
+//!   from the `ADMIN_PASSWORD` variable, or typed on standard input)
 
 use std::sync::Arc;
-use std::time::Duration;
 
-use axum::Router;
-use axum::http::StatusCode;
-use axum::routing::get;
-use tower_http::compression::CompressionLayer;
-use tower_http::limit::RequestBodyLimitLayer;
-use tower_http::services::ServeDir;
-use tower_http::timeout::TimeoutLayer;
-use tower_http::trace::TraceLayer;
+use server::{AppState, Config, Db, app, auth, seed};
 use tracing_subscriber::EnvFilter;
-
-use crate::config::Config;
-use crate::db::Db;
-
-pub struct AppState {
-    pub config: Config,
-    pub db: Db,
-}
-
-pub fn app(state: Arc<AppState>) -> Router {
-    let static_files = ServeDir::new(&state.config.static_dir);
-    let router = Router::new()
-        .route("/", get(pages::home))
-        .route("/posts/{slug}", get(pages::post))
-        .route("/tags/{tag}", get(pages::tag))
-        .route("/authors/{slug}", get(pages::author))
-        .route("/privacy", get(pages::privacy))
-        .route("/healthz", get(|| async { "ok" }))
-        .nest_service("/static", static_files)
-        .fallback(pages::fallback)
-        .with_state(state)
-        .layer(CompressionLayer::new())
-        .layer(RequestBodyLimitLayer::new(64 * 1024))
-        .layer(TimeoutLayer::with_status_code(
-            StatusCode::REQUEST_TIMEOUT,
-            Duration::from_secs(10),
-        ))
-        .layer(TraceLayer::new_for_http());
-    security::apply(router)
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -61,18 +21,30 @@ async fn main() -> anyhow::Result<()> {
     let db = Db::new(&client.database(&config.mongodb_db));
     db.ensure_indexes().await?;
 
-    if std::env::args().nth(1).as_deref() == Some("seed") {
-        return seed::run(&db).await;
+    match std::env::args().nth(1).as_deref() {
+        Some("seed") => return seed::run(&db).await,
+        Some("set-password") => {
+            let password = match std::env::var("ADMIN_PASSWORD") {
+                Ok(p) => p,
+                Err(_) => {
+                    eprintln!("Type the new admin password and press Enter:");
+                    let mut line = String::new();
+                    std::io::stdin().read_line(&mut line)?;
+                    line.trim_end_matches(['\r', '\n']).to_owned()
+                }
+            };
+            auth::set_admin_password(&db, &password).await?;
+            println!("Password set. Existing app logins were signed out.");
+            return Ok(());
+        }
+        Some(other) => anyhow::bail!("unknown command {other:?}"),
+        None => {}
     }
 
     let addr = config.bind_addr;
-    let state = Arc::new(AppState { config, db });
+    let state = Arc::new(AppState::new(config, db));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     tracing::info!("listening on http://{addr}");
-    axum::serve(listener, app(state))
-        .with_graceful_shutdown(async {
-            let _ = tokio::signal::ctrl_c().await;
-        })
-        .await?;
+    server::serve(listener, app(state)).await;
     Ok(())
 }

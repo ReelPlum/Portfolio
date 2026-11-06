@@ -7,6 +7,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+    env:
+      TEST_MONGODB_URI: mongodb://localhost:27017
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -14,5 +21,16 @@ jobs:
           components: clippy, rustfmt
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
-      - run: cargo clippy -p render -p server --all-targets -- -D warnings
-      - run: cargo test -p render -p server
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+
+  mac-app:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy -p app --all-targets -- -D warnings
+      - run: cargo test -p app

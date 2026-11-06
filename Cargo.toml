@@ -1,8 +1,8 @@
 [workspace]
 resolver = "3"
-members = ["crates/render", "crates/server", "crates/app"]
+members = ["crates/api", "crates/render", "crates/server", "crates/client", "crates/app"]
 # The Mac app needs macOS to build, so plain `cargo build` / `cargo test` skip it.
-default-members = ["crates/render", "crates/server"]
+default-members = ["crates/api", "crates/render", "crates/server", "crates/client"]
 
 [workspace.package]
 edition = "2024"
@@ -11,4 +11,6 @@ publish = false
 
 [workspace.dependencies]
 render = { path = "crates/render" }
+api = { path = "crates/api" }
+client = { path = "crates/client" }
 serde = { version = "1", features = ["derive"] }

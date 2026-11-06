@@ -1,0 +1,11 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Types sent between the Mac app and the server"
+
+[dependencies]
+serde = { workspace = true }
+chrono = { version = "0.4", default-features = false, features = ["serde", "clock"] }
