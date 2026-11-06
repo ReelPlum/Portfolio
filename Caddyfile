@@ -1,0 +1,21 @@
+# Caddy gets and renews the HTTPS certificate automatically.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:3000
+	log {
+		output stdout
+		format filter {
+			wrap json
+			# Don't keep visitors' IP addresses in the access log.
+			fields {
+				request>remote_ip delete
+				request>client_ip delete
+				request>headers>Cookie delete
+			}
+		}
+	}
+}
+
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}

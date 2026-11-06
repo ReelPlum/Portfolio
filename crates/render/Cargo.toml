@@ -1,0 +1,13 @@
+[package]
+name = "render"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "Markdown to HTML for posts, shared by the server and the Mac app"
+
+[dependencies]
+comrak = { version = "0.59", default-features = false, features = ["syntect"] }
+syntect = { version = "5", default-features = false, features = ["default-fancy"] }
+katex = { version = "0.4", default-features = false, features = ["duktape"] }
+serde = { workspace = true }

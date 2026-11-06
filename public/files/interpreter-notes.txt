@@ -1,7 +1,0 @@
-Interpreter to-do list
-======================
-
-- Report the column as well as the line in parse errors
-- Add `while` loops and `break`
-- Compile hot functions to bytecode
-- Ship the WebAssembly build to the site

@@ -1,9 +1,0 @@
----
-// A list of posts in one of the layouts from site.config.js: 'cards', 'list' or 'large'.
-import ProjectCard from './ProjectCard.astro';
-import PostList from './PostList.astro';
-const { posts, layout = 'list' } = Astro.props;
----
-{layout === 'list' && <PostList posts={posts} />}
-{layout === 'cards' && <div class="project-grid">{posts.map((p) => <ProjectCard project={p} />)}</div>}
-{layout === 'large' && <div class="project-stack">{posts.map((p) => <ProjectCard project={p} size="large" />)}</div>}
